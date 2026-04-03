@@ -1,4 +1,7 @@
+"use client";
+
 import { SignInForm } from "@/components/forms/sign-in-form";
+import { UniversityWordmark } from "@/components/layout/university-wordmark";
 
 export default function LoginPage() {
   return (
@@ -77,42 +80,38 @@ export default function LoginPage() {
             gap: "12px",
           }}
         >
-          {/* Logo mark */}
           <div
             style={{
-              width: "44px",
-              height: "44px",
-              background: "#1a56db",
-              borderRadius: "12px",
+              width: "320px",
+              height: "90px",
+              background: "#ffffff",
+              borderRadius: "18px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              color: "white",
-              fontSize: "20px",
-              fontWeight: 700,
-              letterSpacing: "-0.5px",
-              boxShadow: "0 2px 8px rgba(26,86,219,0.25)",
+              border: "1px solid #dbe3ee",
+              boxShadow: "0 14px 28px rgba(26,86,219,0.12)",
+              padding: "12px 18px",
             }}
           >
-            U
+            <UniversityWordmark style={{ width: "100%", height: "100%", objectFit: "contain" }} />
           </div>
           <div style={{ textAlign: "center" }}>
             <p
               style={{
-                fontSize: "11px",
+                fontSize: "13px",
                 fontWeight: 600,
-                textTransform: "uppercase",
-                letterSpacing: "0.1em",
+                letterSpacing: "0.06em",
                 color: "#8b949e",
                 marginBottom: "4px",
               }}
             >
-              University Portal
+              Vignan&apos;s Deemed to be University
             </p>
             <h1
               style={{
                 fontFamily: "'Instrument Serif', Georgia, serif",
-                fontSize: "26px",
+                fontSize: "34px",
                 fontWeight: 400,
                 color: "#0d1117",
                 lineHeight: 1.1,
@@ -122,7 +121,7 @@ export default function LoginPage() {
             </h1>
             <p
               style={{
-                fontSize: "14px",
+                fontSize: "16px",
                 color: "#57606a",
                 marginTop: "6px",
               }}

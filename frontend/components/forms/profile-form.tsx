@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { StudentProfile } from "@/lib/types";
 
@@ -12,7 +12,27 @@ export function ProfileForm({
   onSubmit: (values: Partial<StudentProfile>) => Promise<unknown>;
 }) {
   const [focusedField, setFocusedField] = useState<string | null>(null);
-  const { register, handleSubmit } = useForm<StudentProfile>({ values: profile });
+  const normalizedProfile = useMemo<StudentProfile>(
+    () => ({
+      ...profile,
+      admissionCategory: profile.admissionCategory ?? "",
+      phone: profile.phone ?? "",
+      address: profile.address ?? "",
+      profilePhotoUrl: profile.profilePhotoUrl ?? "",
+      subjectsCompleted: profile.subjectsCompleted ?? [],
+      backlogs: profile.backlogs ?? 0,
+      achievementsCount: profile.achievementsCount ?? 0,
+      documentsCount: profile.documentsCount ?? 0,
+    }),
+    [profile]
+  );
+  const { register, handleSubmit, reset } = useForm<StudentProfile>({
+    defaultValues: normalizedProfile,
+  });
+
+  useEffect(() => {
+    reset(normalizedProfile);
+  }, [normalizedProfile, reset]);
 
   const inputStyle = (name: string): React.CSSProperties => ({
     width: "100%",

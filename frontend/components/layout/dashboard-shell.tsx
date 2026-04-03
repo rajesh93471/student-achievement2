@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
-import { Bell, LogOut, MessageSquare, Settings, UserCircle2 } from "lucide-react";
+import { Bell, LogOut, MessageSquare, Settings, UserCircle2, Menu, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/layout/providers";
 import { cn } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { UniversityWordmark } from "@/components/layout/university-wordmark";
 
 interface NavItem {
   label: string;
@@ -31,6 +32,7 @@ export function DashboardShell({
   const { setSession, user, token } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [chatInput, setChatInput] = useState("");
   const [chatMessages, setChatMessages] = useState<Array<{ role: "user" | "bot"; text: string }>>([]);
   const [chatStatus, setChatStatus] = useState<string>("");
@@ -104,504 +106,232 @@ export function DashboardShell({
     return () => document.removeEventListener("mousedown", handleClick);
   }, [showChat]);
 
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
+
   return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap');
+    <div className="flex min-h-screen bg-slate-50 w-full relative">
+      
+      {/* ── Mobile Menu Overlay ── */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-ink/20 backdrop-blur-sm z-40 lg:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
 
-        @keyframes shellFadeUp {
-          from { opacity: 0; transform: translateY(10px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
+      {/* ── Sidebar ── */}
+      <aside className={cn(
+        "fixed lg:sticky top-0 left-0 z-50 h-[100dvh] w-[260px] bg-white border-r border-surface-200 flex flex-col transition-transform duration-300 lg:translate-x-0 shrink-0",
+        isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
+        {/* Brand Area */}
+        <div className="p-3 border-b border-surface-200 flex flex-col items-center justify-center shrink-0 min-h-[100px] gap-1.5">
+          <div className="w-[100px] bg-white rounded-lg flex items-center justify-center transition-all">
+             <UniversityWordmark className="w-full h-auto object-contain" />
+          </div>
+          <p className="font-sans text-[7px] font-bold tracking-widest text-brand-600 uppercase text-center leading-tight px-2 opacity-70">VIGNAN&apos;S UNIVERSITY</p>
+        </div>
 
-        /* ── topbar ── */
-        .ds-topbar {
-          position: sticky;
-          top: 0; z-index: 40;
-          background: var(--topbar-bg);
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
-          border-bottom: 1px solid var(--border);
-          box-shadow: var(--topbar-shadow);
-        }
-        .ds-topbar-inner {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 20px;
-          padding: 0 32px;
-          height: 64px;
-        }
+        {/* Sidebar Nav */}
+        <nav className="flex-1 overflow-y-auto py-4 px-3.5 flex flex-col gap-1.5 scrollbar-hide">
+          <div className="mb-1 px-3">
+            <p className="font-sans text-[9px] font-bold tracking-widest uppercase text-slate-400 opacity-50">Navigation</p>
+          </div>
+          {nav.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "font-sans text-[13px] font-semibold px-4 py-2.5 rounded-xl transition-all border flex items-center w-full uppercase tracking-tight",
+                  isActive 
+                    ? "bg-brand-50 text-brand-700 border-brand-100 shadow-sm" 
+                    : "bg-transparent text-slate-500 border-transparent hover:bg-surface-50 hover:text-brand-600"
+                )}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
 
-        /* ── brand ── */
-        .ds-brand {
-          display: flex; align-items: center; gap: 14px; flex-shrink: 0;
-        }
-        .ds-logo {
-          width: 40px; height: 40px;
-          border-radius: 10px;
-          background: var(--surface);
-          border: 1px solid var(--border);
-          box-shadow: 0 8px 22px rgba(15,23,42,0.08);
-          display: flex; align-items: center; justify-content: center;
-          flex-shrink: 0;
-          overflow: hidden;
-        }
-        .ds-logo img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
-        .ds-portal-label {
-          font-family: 'Inter', sans-serif;
-          font-size: 11px;
-          letter-spacing: 0.16em;
-          text-transform: uppercase;
-          color: var(--brand-secondary);
-          margin-bottom: 2px;
-          font-weight: 600;
-        }
-        .ds-title {
-          font-family: 'Poppins', sans-serif;
-          font-size: 17px;
-          color: var(--text-primary);
-          font-weight: 600;
-          line-height: 1.2;
-        }
+        {/* Sidebar Footer Nav */}
+        <div className="p-3 border-t border-surface-200 flex flex-col gap-1.5 shrink-0 bg-surface-50/50">
+           <Link
+              href="/settings"
+              className={cn(
+                "font-sans text-[13px] font-semibold px-4 py-2.5 rounded-xl transition-all border flex items-center gap-2 uppercase tracking-tight",
+                pathname === "/settings" 
+                  ? "bg-white text-brand-700 border-brand-100 shadow-sm" 
+                  : "bg-transparent text-slate-500 border-transparent hover:bg-white hover:text-brand-600 hover:border-surface-200"
+              )}
+            >
+              <Settings size={16} />
+              Settings
+            </Link>
+        </div>
+      </aside>
 
-        /* ── nav links ── */
-        .ds-nav {
-          display: flex; align-items: center; gap: 2px;
-          flex: 1; justify-content: center;
-        }
-        @media (max-width: 1024px) { .ds-nav { display: none; } }
-
-        .ds-nav-link {
-          font-family: 'Inter', sans-serif;
-          font-size: 14px;
-          letter-spacing: 0.02em;
-          color: #334155;
-          text-decoration: none;
-          padding: 7px 14px;
-          border-radius: 7px;
-          transition: color 0.18s, background 0.18s, border-color 0.18s;
-          white-space: nowrap;
-          border: 1px solid #e2e8f0;
-          background: #ffffff;
-        }
-        .ds-nav-link:hover {
-          color: #1d4ed8;
-          background: #f1f5f9;
-          border-color: #cbd5e1;
-        }
-        .ds-nav-link.active {
-          color: #1e40af;
-          background: #ffffff;
-          border-color: #93c5fd;
-          box-shadow: 0 1px 8px rgba(30, 58, 138, 0.15);
-        }
-
-        /* ── actions ── */
-        .ds-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-
-        .ds-icon-btn {
-          width: 36px; height: 36px;
-          display: flex; align-items: center; justify-content: center;
-          background: var(--surface);
-          border: 1px solid var(--border);
-          border-radius: 8px;
-          color: var(--slate);
-          cursor: pointer;
-          transition: border-color 0.18s, color 0.18s, background 0.18s;
-        }
-        .ds-icon-btn:hover { border-color: #94a3b8; color: var(--text-primary); background: rgba(37,99,235,0.06); }
-        .ds-bell-btn {
-          width: 44px;
-          height: 44px;
-          border-radius: 10px;
-        }
-        .ds-icon-badge {
-          position: absolute;
-          top: -4px;
-          right: -4px;
-          background: #ef4444;
-          color: #fff;
-          font-size: 10px;
-          font-weight: 600;
-          padding: 2px 6px;
-          border-radius: 999px;
-        }
-
-        .ds-notif-panel {
-          position: absolute;
-          top: 46px;
-          right: 0;
-          width: 320px;
-          background: #ffffff;
-          border: 1px solid #e2e8f0;
-          border-radius: 14px;
-          box-shadow: 0 18px 40px rgba(15,23,42,0.15);
-          z-index: 60;
-          padding: 12px;
-          display: grid;
-          gap: 10px;
-        }
-        .ds-notif-item {
-          border: 1px solid #e2e8f0;
-          border-radius: 12px;
-          padding: 10px 12px;
-          background: #f8fafc;
-          display: grid;
-          gap: 4px;
-        }
-        .ds-notif-item.unread {
-          border-color: rgba(37,99,235,0.4);
-          background: #eef2ff;
-        }
-        .ds-notif-name {
-          font-size: 13px;
-          font-weight: 600;
-          color: #0f172a;
-        }
-        .ds-notif-message {
-          font-size: 12px;
-          color: #475569;
-        }
-        .ds-notif-meta {
-          font-size: 11px;
-          color: #94a3b8;
-        }
-        .ds-notif-btn {
-          font-size: 11px;
-          font-weight: 600;
-          border-radius: 999px;
-          padding: 4px 8px;
-          border: 1px solid #cbd5e1;
-          background: #ffffff;
-          color: #1e3a8a;
-          cursor: pointer;
-          justify-self: start;
-        }
-        .ds-notif-btn.danger {
-          color: #ef4444;
-          border-color: rgba(239,68,68,0.3);
-        }
-        .ds-notif-empty {
-          font-size: 12px;
-          color: #64748b;
-          text-align: center;
-          padding: 16px 6px;
-          border: 1px dashed #cbd5e1;
-          border-radius: 10px;
-        }
-
-        .ds-chat-wrap {
-          position: fixed;
-          right: 22px;
-          bottom: 22px;
-          z-index: 70;
-        }
-        .ds-chat-btn {
-          width: 60px;
-          height: 60px;
-          border-radius: 14px;
-          background: #1e3a8a;
-          color: #ffffff;
-          border: none;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 18px 36px rgba(30,58,138,0.28);
-          cursor: pointer;
-        }
-        .ds-chat-panel {
-          position: absolute;
-          bottom: 74px;
-          right: 0;
-          width: 460px;
-          background: #ffffff;
-          border: 1px solid #e2e8f0;
-          border-radius: 16px;
-          box-shadow: 0 18px 40px rgba(15,23,42,0.16);
-          display: grid;
-          grid-template-rows: auto 1fr auto;
-          overflow: hidden;
-        }
-        .ds-chat-header {
-          padding: 14px 16px;
-          border-bottom: 1px solid #e2e8f0;
-          font-size: 14px;
-          font-weight: 600;
-          color: #0f172a;
-          background: #f8fafc;
-        }
-        .ds-chat-body {
-          padding: 14px;
-          display: grid;
-          gap: 8px;
-          max-height: 460px;
-          overflow: auto;
-        }
-        .ds-chat-msg {
-          font-size: 13px;
-          line-height: 1.5;
-          padding: 10px 12px;
-          border-radius: 12px;
-          max-width: 90%;
-          white-space: pre-wrap;
-        }
-        .ds-chat-msg.user {
-          background: #1e3a8a;
-          color: #ffffff;
-          justify-self: end;
-        }
-        .ds-chat-msg.bot {
-          background: #f1f5f9;
-          color: #0f172a;
-          justify-self: start;
-        }
-        .ds-chat-input {
-          display: flex;
-          gap: 8px;
-          padding: 12px;
-          border-top: 1px solid #e2e8f0;
-        }
-        .ds-chat-input input {
-          flex: 1;
-          border: 1px solid #cbd5e1;
-          border-radius: 10px;
-          padding: 10px 12px;
-          font-size: 13px;
-        }
-        .ds-chat-send {
-          background: #1e3a8a;
-          color: #ffffff;
-          border: none;
-          border-radius: 10px;
-          padding: 10px 16px;
-          font-size: 13px;
-          cursor: pointer;
-        }
-
-        .ds-user-btn {
-          display: flex; align-items: center; gap: 8px;
-          background: var(--surface);
-          border: 1px solid var(--border);
-          border-radius: 8px;
-          padding: 7px 14px;
-          font-family: 'Inter', sans-serif;
-          font-size: 14px;
-          color: var(--slate);
-          cursor: pointer;
-          transition: border-color 0.18s, color 0.18s;
-          white-space: nowrap;
-        }
-        .ds-user-btn:hover { border-color: #94a3b8; color: var(--text-primary); }
-
-        @media (max-width: 768px) { .ds-user-btn { display: none; } }
-
-        .ds-logout-btn {
-          display: flex; align-items: center; gap: 7px;
-          background: var(--surface);
-          border: 1px solid rgba(244,63,94,0.22);
-          border-radius: 8px;
-          padding: 7px 14px;
-          font-family: 'Inter', sans-serif;
-          font-size: 14px;
-          color: #f43f5e;
-          cursor: pointer;
-          transition: background 0.18s, border-color 0.18s;
-          white-space: nowrap;
-        }
-        .ds-logout-btn:hover {
-          background: rgba(244,63,94,0.07);
-          border-color: rgba(244,63,94,0.4);
-        }
-
-        /* ── subtitle bar ── */
-        .ds-subtitle-bar {
-          padding: 12px 32px;
-          border-bottom: 1px solid var(--border);
-          background: var(--surface);
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-        .ds-subtitle-accent { width: 3px; height: 14px; border-radius: 99px; background: var(--brand-secondary); flex-shrink: 0; }
-        .ds-subtitle-text {
-          font-family: 'Inter', sans-serif;
-          font-size: 13px;
-          color: var(--slate);
-          letter-spacing: 0.02em;
-        }
-
-        /* ── shell / content ── */
-        .ds-shell {
-          min-height: 100vh;
-          background: var(--page-bg);
-          background-image:
-            radial-gradient(ellipse at 15% 0%,  var(--page-grad-1) 0%, transparent 50%),
-            radial-gradient(ellipse at 85% 10%, var(--page-grad-2) 0%, transparent 50%);
-          background-attachment: fixed;
-        }
-        .ds-content {
-          max-width: none;
-          padding: 28px 32px 64px;
-          display: grid;
-          gap: 20px;
-          animation: shellFadeUp 0.4s ease both;
-        }
-        @media (max-width: 768px) {
-          .ds-topbar-inner { padding: 0 16px; }
-          .ds-subtitle-bar  { padding: 10px 16px; }
-          .ds-content       { padding: 20px 16px 48px; }
-        }
-      `}</style>
-
-      <div className="ds-shell">
-        {/* ── Topbar ── */}
-        <header className="ds-topbar">
-          <div className="ds-topbar-inner">
-
-            {/* Brand */}
-            <div className="ds-brand">
-              <div className="ds-logo">
-                <img src="/brand/university-logo.svg" alt="University logo"
-                  onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />
-              </div>
-              <div>
-                <p className="ds-portal-label">University Portal</p>
-                <p className="ds-title">{title}</p>
-              </div>
+      {/* ── Main Layout ── */}
+      <div className="flex-1 flex flex-col min-h-screen min-w-0 pb-20">
+        
+        {/* Topbar */}
+        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-surface-200 shadow-sm">
+          <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-2 lg:min-h-[52px]">
+            <div className="flex items-center gap-2.5">
+              <button 
+                className="lg:hidden p-2 -ml-2 text-slate-600 hover:text-brand-600 transition-colors"
+                onClick={() => setIsMobileMenuOpen(true)}
+              >
+                <Menu size={20} />
+              </button>
+              <h1 className="font-display font-bold text-base sm:text-lg text-ink leading-tight truncate">{title}</h1>
             </div>
 
-            {/* Nav */}
-            <nav className="ds-nav">
-              {nav.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn("ds-nav-link", pathname === item.href ? "active" : "")}
-                >
-                  {item.label}
-                </Link>
-              ))}
-              <Link
-                href="/settings"
-                className={cn("ds-nav-link", pathname === "/settings" ? "active" : "")}
-                style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
-              >
-                <Settings size={13} />
-                Settings
-              </Link>
-            </nav>
-
             {/* Actions */}
-            <div className="ds-actions">
-              {user?.role === "admin" ? (
-                <div style={{ position: "relative" }} ref={notifRef}>
+            <div className="flex items-center gap-2 shrink-0">
+              {user?.role === "admin" && (
+                <div className="relative" ref={notifRef}>
                   <button
-                    className="ds-icon-btn ds-bell-btn"
+                    className="w-10 h-10 rounded-lg bg-surface-50 border border-surface-200 flex items-center justify-center text-slate-600 hover:bg-brand-50 hover:text-brand-600 hover:border-brand-200 transition-colors relative"
                     type="button"
                     aria-label="Notifications"
                     onClick={() => setShowNotifications((prev) => !prev)}
-                    style={{ position: "relative" }}
                   >
                     <Bell size={18} />
                     {unreadCount > 0 && (
-                      <span className="ds-icon-badge">{unreadCount}</span>
+                      <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-sm">
+                        {unreadCount}
+                      </span>
                     )}
                   </button>
                   {showNotifications && (
-                    <div className="ds-notif-panel">
+                    <div className="absolute top-12 right-0 w-80 sm:w-96 bg-white border border-surface-200 rounded-2xl shadow-panel p-3 z-50 flex flex-col gap-2">
                       {notifications.length === 0 ? (
-                        <div className="ds-notif-empty">No new requests.</div>
+                        <div className="text-sm text-slate-500 text-center py-6 px-4 border border-dashed border-surface-300 rounded-xl">No new requests.</div>
                       ) : (
                         notifications.slice(0, 5).map((note: any) => (
                           <div
                             key={note._id}
-                            className={`ds-notif-item${note.status === "unread" ? " unread" : ""}`}
+                            className={cn(
+                              "rounded-xl p-3 flex flex-col gap-1 border",
+                              note.status === "unread" ? "border-brand-300 bg-brand-50/50" : "border-surface-200 bg-surface-50"
+                            )}
                           >
-                            <div className="ds-notif-name">{note.senderName || "Student"}</div>
-                            <div className="ds-notif-message">{note.message}</div>
-                            <div className="ds-notif-meta">
+                            <div className="text-sm font-semibold text-ink">{note.senderName || "Student"}</div>
+                            <div className="text-xs text-slate-600">{note.message}</div>
+                            <div className="text-[11px] text-slate-500 mt-1">
                               {note.senderEmail || "Unknown email"} • {new Date(note.createdAt).toLocaleString()}
                             </div>
-                            {note.status === "unread" && (
+                            <div className="flex gap-2 mt-2">
+                              {note.status === "unread" && (
+                                <button
+                                  className="text-[11px] font-semibold px-3 py-1.5 rounded-full border border-surface-300 bg-white text-brand-700 hover:border-brand-300 transition-colors"
+                                  type="button"
+                                  onClick={() => markReadMutation.mutate(note._id)}
+                                >
+                                  Mark read
+                                </button>
+                              )}
                               <button
-                                className="ds-notif-btn"
+                                className="text-[11px] font-semibold px-3 py-1.5 rounded-full border border-red-200 bg-white text-red-600 hover:border-red-300 transition-colors"
                                 type="button"
-                                onClick={() => markReadMutation.mutate(note._id)}
+                                onClick={() => deleteMutation.mutate(note._id)}
                               >
-                                Mark as read
+                                Delete
                               </button>
-                            )}
-                            <button
-                              className="ds-notif-btn danger"
-                              type="button"
-                              onClick={() => deleteMutation.mutate(note._id)}
-                            >
-                              Delete
-                            </button>
+                            </div>
                           </div>
                         ))
                       )}
                     </div>
                   )}
                 </div>
-              ) : null}
+              )}
 
               <button
-                className="ds-user-btn"
+                className="flex items-center gap-2 px-3 py-1.5 bg-surface-50 border border-surface-200 rounded-lg text-xs font-semibold text-slate-700 hover:bg-white hover:border-surface-300 transition-colors max-w-[140px] truncate"
                 type="button"
                 onClick={() => router.push(profilePath)}
               >
-                <UserCircle2 size={15} style={{ color: "var(--brand-accent)" }} />
-                {user?.name || "Signed in user"}
+                <UserCircle2 size={16} className="text-brand-500 shrink-0" />
+                <span className="truncate hidden sm:inline">{user?.name || "User"}</span>
               </button>
 
               <button
-                className="ds-logout-btn"
+                className="flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 bg-white border border-red-200 rounded-lg text-xs font-semibold text-red-600 hover:bg-red-50 hover:border-red-300 transition-colors shrink-0"
                 type="button"
                 onClick={() => {
                   setSession(null);
                   router.push("/signin");
                 }}
+                title="Logout"
               >
-                <LogOut size={13} />
-                Logout
+                <LogOut size={16} />
+                <span className="hidden sm:inline ml-1.5">Logout</span>
               </button>
             </div>
           </div>
+          
+          {/* Subtitle bar */}
+          <div className="bg-white border-b border-surface-100 px-4 sm:px-6 lg:px-8 py-1.5 flex items-center gap-2">
+            <div className="w-0.5 h-2.5 rounded-full bg-accent-500 shrink-0"></div>
+            <p className="text-[11px] text-slate-400 font-semibold uppercase tracking-tight truncate">{subtitle}</p>
+          </div>
         </header>
 
-        {/* ── Subtitle bar ── */}
-        <div className="ds-subtitle-bar">
-          <div className="ds-subtitle-accent" />
-          <p className="ds-subtitle-text">{subtitle}</p>
-        </div>
-
-        {/* ── Content ── */}
-        <div className="ds-content">
+        {/* Main Content Area */}
+        <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 grid gap-3 sm:gap-4 animate-fade-up">
           {children}
-        </div>
+        </main>
       </div>
 
-      <div className="ds-chat-wrap" ref={chatRef}>
+      {/* ── Chatbot ── */}
+      <div className="fixed right-6 bottom-6 z-50" ref={chatRef}>
         {showChat && (
-          <div className="ds-chat-panel">
-            <div className="ds-chat-header">Campus Assistant</div>
-            <div className="ds-chat-body">
+           <div className="absolute bottom-20 right-0 w-[calc(100vw-3rem)] sm:w-[400px] h-[500px] bg-white border border-surface-200 rounded-2xl shadow-panel flex flex-col overflow-hidden">
+            <div className="bg-brand-50 p-4 border-b border-surface-200 flex items-center justify-between">
+              <span className="font-semibold text-brand-900 text-sm">Campus Assistant</span>
+              <button 
+                onClick={() => setShowChat(false)}
+                className="text-brand-700 hover:text-brand-900 font-semibold text-lg leading-none"
+              >
+                &times;
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 bg-white">
               {chatMessages.length === 0 && (
-                <div className="ds-chat-msg bot">
+                <div className="bg-surface-100 text-ink text-sm rounded-2xl rounded-tl-sm p-3 max-w-[85%] self-start">
                   Hi! Ask me about profiles, documents, achievements, or reports.
                 </div>
               )}
               {chatMessages.map((msg, idx) => (
-                <div key={`${msg.role}-${idx}`} className={`ds-chat-msg ${msg.role}`}>
+                <div 
+                  key={`${msg.role}-${idx}`} 
+                  className={cn(
+                    "text-sm rounded-2xl p-3 max-w-[85%] whitespace-pre-wrap",
+                    msg.role === "user" 
+                      ? "bg-brand-600 text-white rounded-tr-sm self-end"
+                      : "bg-surface-100 text-ink border border-surface-200 rounded-tl-sm self-start"
+                  )}
+                >
                   {msg.text}
                 </div>
               ))}
-              {chatStatus && <div className="ds-chat-msg bot">{chatStatus}</div>}
+              {chatStatus && (
+                <div className="bg-surface-100 text-slate-500 text-sm rounded-2xl rounded-tl-sm p-3 max-w-[85%] self-start flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></div>
+                  <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce delay-75"></div>
+                  <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce delay-150"></div>
+                </div>
+              )}
             </div>
             <form
-              className="ds-chat-input"
+              className="p-3 bg-white border-t border-surface-200 flex gap-2"
               onSubmit={(e) => {
                 e.preventDefault();
                 const trimmed = chatInput.trim();
@@ -614,23 +344,29 @@ export function DashboardShell({
             >
               <input
                 type="text"
+                className="flex-1 bg-surface-50 border border-surface-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100 transition-shadow"
                 placeholder="Type your question..."
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
               />
-              <button className="ds-chat-send" type="submit">Send</button>
+              <button 
+                type="submit"
+                className="bg-brand-600 text-white font-semibold text-sm px-4 py-2.5 rounded-xl hover:bg-brand-700 transition-colors shadow-sm"
+              >
+                Send
+              </button>
             </form>
           </div>
         )}
         <button
-          className="ds-chat-btn"
+          className="w-14 h-14 bg-brand-600 text-white rounded-2xl shadow-card flex items-center justify-center hover:bg-brand-700 hover:-translate-y-1 transition-all duration-300"
           type="button"
           aria-label="Open chatbot"
           onClick={() => setShowChat((prev) => !prev)}
         >
-          <MessageSquare size={20} />
+          <MessageSquare size={24} />
         </button>
       </div>
-    </>
+    </div>
   );
 }

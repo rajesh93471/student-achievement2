@@ -9,41 +9,72 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        /* ── Core text tokens ── */
-        ink:   "#e8e2d9",   // primary text (warm white)
-        slate: {
-          DEFAULT: "#888888",
-          100:     "#1e1e1e",
-          200:     "#2a2a2a",
+        /* ── Core tokens for Light Theme SaaS ── */
+        surface: {
+          DEFAULT: "#ffffff",
+          50:  "#f8fafc",
+          100: "#f1f5f9",
+          200: "#e2e8f0",
+          300: "#cbd5e1",
         },
-
-        /* ── Surface tokens ── */
-        sand: "#0d0d0d",
-        sky:  "#0a0a0a",
-
-        /* ── Brand / accent ── */
-        coral: "#f59e0b",   // was blue — now amber throughout
-        mint:  "rgba(245,158,11,0.08)",
-
+        ink: {
+          DEFAULT: "#0f172a", // main text
+          dim:     "#334155",
+          lighter: "#475569",
+        },
+        slate: {
+          50:  "#f8fafc",
+          100: "#f1f5f9",
+          200: "#e2e8f0",
+          300: "#cbd5e1",
+          400: "#94a3b8",
+          500: "#64748b",
+          600: "#475569",
+          700: "#334155",
+          800: "#1e293b",
+          900: "#0f172a",
+        },
         brand: {
-          50:  "rgba(245,158,11,0.06)",
-          100: "rgba(245,158,11,0.10)",
-          200: "rgba(245,158,11,0.18)",
-          300: "rgba(245,158,11,0.28)",
+          50:  "#eff6ff",
+          100: "#dbeafe",
+          200: "#bfdbfe",
+          300: "#93c5fd",
+          400: "#60a5fa",
+          500: "#3b82f6", // secondary action
+          600: "#2563eb",
+          700: "#1d4ed8",
+          800: "#1e40af",
+          900: "#1e3a8a", // primary brand
+        },
+        accent: {
+          50:  "#fffbeb",
+          100: "#fef3c7",
+          200: "#fde68a",
+          300: "#fcd34d",
           400: "#fbbf24",
-          500: "#f59e0b",
+          500: "#f59e0b", // accent (coral/amber)
           600: "#d97706",
           700: "#b45309",
-          800: "#92400e",
-          900: "#78350f",
         },
-
-        accent: "#f59e0b",
-
-        /* ── Full accent palette (used across badge/status system) ── */
-        amber:  "#f59e0b",
+        /* ── Status and Category Colors ── */
+        success: {
+          100: "#d1fae5",
+          600: "#059669",
+          800: "#065f46"
+        },
+        warning: {
+          100: "#fef3c7",
+          600: "#d97706",
+          800: "#92400e"
+        },
+        danger: {
+          100: "#ffe4e6",
+          600: "#e11d48",
+          800: "#9f1239"
+        },
         blue:   "#3b82f6",
         green:  "#10b981",
+        amber:  "#f59e0b",
         purple: "#8b5cf6",
         red:    "#f43f5e",
         cyan:   "#06b6d4",
@@ -52,40 +83,31 @@ const config: Config = {
         pink:   "#e879f9",
       },
 
-      backgroundColor: {
-        surface:     "#111111",
-        "surface-low": "#0d0d0d",
-        "surface-bg":  "#0a0a0a",
-      },
-
-      borderColor: {
-        DEFAULT:      "#1e1e1e",
-        soft:         "#161616",
-        strong:       "#2a2a2a",
-      },
-
       boxShadow: {
-        panel: "0 20px 60px rgba(0,0,0,0.55)",
-        soft:  "0 4px 20px rgba(0,0,0,0.35)",
-        amber: "0 10px 28px rgba(245,158,11,0.25)",
-        card:  "0 40px 80px rgba(0,0,0,0.5)",
+        soft:   "0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)",
+        card:   "0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03)",
+        panel:  "0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02)",
+        glow:   "0 0 20px rgba(37, 99, 235, 0.15)",
+        amber:  "0 10px 28px rgba(245,158,11,0.25)",
       },
 
       fontFamily: {
-        sans:    ["DM Mono", "monospace"],
-        mono:    ["DM Mono", "monospace"],
-        display: ["DM Serif Display", "Georgia", "serif"],
+        sans:    ["var(--font-jakarta)", "Inter", "system-ui", "sans-serif"],
+        display: ["var(--font-outfit)", "var(--font-jakarta)", "sans-serif"],
+        mono:    ["ui-monospace", "monospace"],
       },
 
       borderRadius: {
-        "2xl": "16px",
-        "3xl": "20px",
-        "4xl": "24px",
+        "xl":  "0.75rem",
+        "2xl": "1rem",
+        "3xl": "1.5rem",
+        "4xl": "2rem",
       },
 
       animation: {
         "fade-up": "fadeUp 0.4s ease both",
         shimmer:   "skeletonShimmer 1.6s ease-in-out infinite",
+        "float":   "float 6s ease-in-out infinite",
       },
 
       keyframes: {
@@ -97,6 +119,10 @@ const config: Config = {
           "0%":   { backgroundPosition: "-400px 0" },
           "100%": { backgroundPosition:  "400px 0" },
         },
+        float: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-10px)" },
+        }
       },
     },
   },

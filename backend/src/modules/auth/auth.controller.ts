@@ -22,6 +22,21 @@ export class AuthController {
     return this.authService.login(body);
   }
 
+  @Post("forgot-password/request-otp")
+  requestPasswordResetOtp(@Body() body: { identifier: string }) {
+    return this.authService.requestPasswordResetOtp(body);
+  }
+
+  @Post("forgot-password/verify-otp")
+  verifyPasswordResetOtp(@Body() body: { identifier: string; otp: string }) {
+    return this.authService.verifyPasswordResetOtp(body);
+  }
+
+  @Post("forgot-password/reset")
+  resetPassword(@Body() body: { identifier: string; resetToken: string; password: string }) {
+    return this.authService.resetPassword(body);
+  }
+
   @UseGuards(JwtAuthGuard)
   @Get("me")
   me(@Req() req: any) {

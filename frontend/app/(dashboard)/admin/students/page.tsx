@@ -7,13 +7,32 @@ import { useAuth } from "@/components/layout/providers";
 import { Alert } from "@/components/ui/alert";
 import { api } from "@/lib/api";
 import { readExcelFile } from "@/lib/excel";
+import { cn } from "@/lib/utils";
+import { 
+  UserPlus, 
+  Users, 
+  Search, 
+  Filter, 
+  Upload, 
+  Save, 
+  Trash2, 
+  FileText, 
+  Award, 
+  ExternalLink,
+  ChevronRight,
+  Info,
+  Loader2
+} from "lucide-react";
+
+const inputClasses = "w-full bg-white border border-surface-300 rounded-xl px-4 py-3 text-ink font-sans text-sm outline-none transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-100";
+const labelClasses = "block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2";
 
 export default function AdminStudentsPage() {
   const { token } = useAuth();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [department, setDepartment] = useState("");
-  const [activeTab, setActiveTab] = useState<"add" | "manage">("add");
+  const [activeTab, setActiveTab] = useState<"add" | "manage">("manage");
   const [selectedStudentId, setSelectedStudentId] = useState<string>("");
   const [saveMessage, setSaveMessage] = useState<string>("");
   const [bulkMessage, setBulkMessage] = useState<string>("");
@@ -37,10 +56,10 @@ export default function AdminStudentsPage() {
       setFormError("");
       await queryClient.invalidateQueries({ queryKey: ["admin-students"] });
       await queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
+      setActiveTab("manage");
     },
     onError: (error: any) => {
-      const message = error?.message || "Unable to create student.";
-      setFormError(message);
+      setFormError(error?.message || "Unable to create student.");
     },
   });
 
@@ -56,748 +75,346 @@ export default function AdminStudentsPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api(`/admin/students/${id}`, { method: "DELETE", token }),
     onSuccess: async () => {
+      setSelectedStudentId("");
       await queryClient.invalidateQueries({ queryKey: ["admin-students"] });
       await queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
-    },
-  });
-
-  const downloadMutation = useMutation({
-    mutationFn: (id: string) => api<{ downloadUrl: string }>(`/documents/${id}/download-url`, { token }),
-    onSuccess: (payload) => {
-      if (payload?.downloadUrl) window.open(payload.downloadUrl, "_blank", "noopener,noreferrer");
     },
   });
 
   const students = data?.students || [];
   const normalizedSearch = search.trim().toLowerCase();
   const normalizedDepartment = department.trim().toLowerCase();
+  
   const filteredStudents = students.filter((student) => {
     const studentId = String(student.studentId || "").toLowerCase();
     const fullName = String(student.fullName || "").toLowerCase();
     const dept = String(student.department || "").toLowerCase();
-    const program = String(student.program || "").toLowerCase();
-    const matchesSearch = !normalizedSearch
-      || studentId.includes(normalizedSearch)
-      || fullName.includes(normalizedSearch)
-      || dept.includes(normalizedSearch)
-      || program.includes(normalizedSearch);
-    const matchesDepartment = !normalizedDepartment
-      || dept.includes(normalizedDepartment)
-      || studentId.includes(normalizedDepartment)
-      || program.includes(normalizedDepartment);
-    return matchesSearch && matchesDepartment;
+    return (
+      (!normalizedSearch || studentId.includes(normalizedSearch) || fullName.includes(normalizedSearch)) &&
+      (!normalizedDepartment || dept.includes(normalizedDepartment))
+    );
   });
-  const selectedStudent = students.find((student) => student._id === selectedStudentId);
+
+  const selectedStudent = students.find((s) => s._id === selectedStudentId);
 
   return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&display=swap');
+    <DashboardShell
+      title="Student Directory"
+      subtitle="Comprehensive management of student profiles, academic records, and achievement history."
+      nav={[
+        { label: "Overview", href: "/admin" },
+        { label: "Students", href: "/admin/students" },
+        { label: "Student achievements", href: "/admin/student-achievements" },
+        { label: "Approvals", href: "/admin/approvals" },
+        { label: "Analytics", href: "/admin/analytics" },
+        { label: "Reports", href: "/admin/reports" },
+      ]}
+    >
+      {/* ── Tabs & Search ── */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-2 animate-fade-up">
+        <div className="flex bg-white border border-surface-200 rounded-2xl p-1 shadow-sm shrink-0">
+          <button
+            className={cn(
+              "flex items-center gap-2 px-4 py-1.5 rounded-xl text-xs font-bold transition-all",
+              activeTab === "manage" ? "bg-brand-50 text-brand-700 shadow-sm" : "text-slate-500 hover:text-brand-600"
+            )}
+            onClick={() => setActiveTab("manage")}
+          >
+            <Users size={14} />
+            DIRECTORY
+          </button>
+          <button
+            className={cn(
+              "flex items-center gap-2 px-4 py-1.5 rounded-xl text-xs font-bold transition-all",
+              activeTab === "add" ? "bg-brand-50 text-brand-700 shadow-sm" : "text-slate-500 hover:text-brand-600"
+            )}
+            onClick={() => setActiveTab("add")}
+          >
+            <UserPlus size={14} />
+            ENROLL
+          </button>
+        </div>
 
-        .st-wrap {
-          --ink: #0d1117;
-          --slate: #57606a;
-          --slate-light: #8b949e;
-          --brand: #1a56db;
-          --brand-light: #eef2ff;
-          --green: #16a34a;
-          --green-light: #dcfce7;
-          --red: #b91c1c;
-          --red-light: #fee2e2;
-          --surface: #f6f8fa;
-          --white: #ffffff;
-          --border: #d0d7de;
-          --border-light: #eaeef2;
-          --radius: 10px;
-          --radius-lg: 18px;
-          --radius-xl: 24px;
-          --shadow: 0 3px 12px rgba(31,35,40,0.08), 0 1px 3px rgba(31,35,40,0.04);
-          --font-display: 'Instrument Serif', Georgia, serif;
-          --font-body: 'Geist', system-ui, sans-serif;
-          font-family: var(--font-body);
-          color: var(--ink);
-          -webkit-font-smoothing: antialiased;
-        }
-
-        /* PAGE HEADER */
-        .st-page-header {
-          padding: 28px 0 24px;
-          border-bottom: 1px solid var(--border-light);
-          margin-bottom: 24px;
-          display: flex; align-items: flex-start;
-          justify-content: space-between; gap: 16px; flex-wrap: wrap;
-        }
-        .st-breadcrumb {
-          font-size: 11px; font-weight: 600; text-transform: uppercase;
-          letter-spacing: 0.08em; color: var(--slate-light); margin-bottom: 8px;
-          display: flex; align-items: center; gap: 5px;
-        }
-        .st-page-title {
-          font-family: var(--font-display);
-          font-size: 30px; font-weight: 400; color: var(--ink); line-height: 1.1;
-        }
-        .st-page-title em { font-style: italic; color: var(--brand); }
-        .st-page-sub { font-size: 14px; color: var(--slate); margin-top: 5px; }
-
-        /* TAB SWITCHER */
-        .st-tabs {
-          display: inline-flex;
-          background: var(--surface);
-          border: 1px solid var(--border-light);
-          border-radius: 12px; padding: 4px; gap: 4px;
-          margin-bottom: 20px;
-        }
-        .st-tab {
-          font-family: 'Geist', system-ui, sans-serif;
-          font-size: 13px; font-weight: 600;
-          padding: 8px 18px; border-radius: 9px;
-          border: none; cursor: pointer;
-          transition: all 0.18s;
-          background: transparent; color: var(--slate);
-        }
-        .st-tab.active {
-          background: var(--white); color: var(--brand);
-          box-shadow: 0 1px 4px rgba(31,35,40,0.10);
-        }
-        .st-tab:not(.active):hover { color: var(--ink); }
-
-        /* CARD */
-        .st-card {
-          background: var(--white);
-          border: 1px solid var(--border);
-          border-radius: var(--radius-xl);
-          overflow: hidden;
-          margin-bottom: 20px;
-        }
-        .st-card-header {
-          display: flex; align-items: center; justify-content: space-between;
-          padding: 18px 24px 14px;
-          border-bottom: 1px solid var(--border-light);
-          flex-wrap: wrap; gap: 10px;
-        }
-        .st-card-title {
-          font-size: 14px; font-weight: 600; color: var(--ink);
-          display: flex; align-items: center; gap: 8px;
-        }
-        .st-card-title-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--brand); }
-        .st-card-body { padding: 20px 24px; }
-
-        /* FORM GRID */
-        .st-form-grid {
-          display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px;
-        }
-        .st-field { display: flex; flex-direction: column; gap: 6px; }
-        .st-label {
-          font-size: 11px; font-weight: 700; text-transform: uppercase;
-          letter-spacing: 0.08em; color: var(--slate-light);
-        }
-        .st-input {
-          font-family: 'Geist', system-ui, sans-serif;
-          font-size: 14px; color: var(--ink);
-          background: var(--surface); border: 1.5px solid var(--border);
-          border-radius: var(--radius); padding: 9px 13px;
-          outline: none; width: 100%;
-          transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
-        }
-        .st-input::placeholder { color: var(--slate-light); }
-        .st-input:focus {
-          border-color: var(--brand); background: var(--white);
-          box-shadow: 0 0 0 3px rgba(26,86,219,0.10);
-        }
-        select.st-input { cursor: pointer; }
-
-        .st-hint {
-          font-size: 12px; color: var(--slate-light);
-          background: var(--surface); border: 1px solid var(--border-light);
-          border-radius: 8px; padding: 10px 14px; margin-bottom: 4px;
-          line-height: 1.6;
-        }
-
-        /* BUTTONS */
-        .st-btn {
-          font-family: 'Geist', system-ui, sans-serif;
-          font-size: 13px; font-weight: 600;
-          border: none; border-radius: 9px;
-          padding: 8px 16px; cursor: pointer;
-          transition: all 0.15s;
-          display: inline-flex; align-items: center; gap: 5px;
-        }
-        .st-btn-primary {
-          background: var(--brand); color: white;
-          box-shadow: 0 2px 6px rgba(26,86,219,0.2);
-        }
-        .st-btn-primary:hover { background: #1140b8; transform: translateY(-1px); }
-        .st-btn-ghost {
-          background: var(--surface); color: var(--ink);
-          border: 1.5px solid var(--border);
-        }
-        .st-btn-ghost:hover { border-color: var(--ink); }
-        .st-btn-danger {
-          background: var(--red-light); color: var(--red);
-        }
-        .st-btn-danger:hover { background: #fecaca; }
-        .st-btn-excel {
-          background: var(--green-light); color: var(--green);
-          cursor: pointer;
-        }
-        .st-btn-excel:hover { background: #bbf7d0; }
-
-        /* SEARCH ROW */
-        .st-search-row {
-          display: flex; flex-wrap: wrap; gap: 10px;
-          margin-bottom: 20px; align-items: center;
-        }
-        .st-search-input {
-          font-family: 'Geist', system-ui, sans-serif;
-          font-size: 13px; color: var(--ink);
-          background: var(--surface); border: 1.5px solid var(--border);
-          border-radius: var(--radius); padding: 8px 13px;
-          outline: none; flex: 1; min-width: 180px;
-          transition: border-color 0.15s, box-shadow 0.15s;
-        }
-        .st-search-input::placeholder { color: var(--slate-light); }
-        .st-search-input:focus {
-          border-color: var(--brand);
-          box-shadow: 0 0 0 3px rgba(26,86,219,0.10);
-          background: var(--white);
-        }
-
-        /* SELECT STUDENT */
-        .st-select-hint {
-          display: flex; align-items: center; gap: 10px;
-          background: var(--brand-light);
-          border: 1px solid rgba(26,86,219,0.15);
-          border-radius: var(--radius-lg); padding: 14px 18px;
-          font-size: 13px; color: var(--brand); font-weight: 500;
-        }
-        .st-select-hint-icon { font-size: 16px; }
-        .st-loading-row {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          font-size: 12px;
-          color: var(--slate-light);
-          background: var(--surface);
-          border: 1px solid var(--border-light);
-          border-radius: 999px;
-          padding: 6px 12px;
-          margin-left: auto;
-        }
-        .st-loading-dot {
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          background: var(--brand);
-          animation: st-pulse 1.2s infinite ease-in-out;
-        }
-        @keyframes st-pulse {
-          0%, 100% { opacity: 0.35; }
-          50% { opacity: 1; }
-        }
-        .st-skeleton {
-          background: linear-gradient(90deg, #eef1f6 25%, #f7f8fb 37%, #eef1f6 63%);
-          background-size: 400% 100%;
-          animation: st-skeleton 1.3s ease infinite;
-          border-radius: 10px;
-          height: 36px;
-        }
-        .st-skeleton-row { height: 44px; }
-        @keyframes st-skeleton {
-          0% { background-position: 100% 0; }
-          100% { background-position: 0 0; }
-        }
-
-        /* EDIT FORM */
-        .st-edit-card {
-          background: var(--surface);
-          border: 1px solid var(--border-light);
-          border-radius: var(--radius-lg);
-          padding: 20px; margin-bottom: 16px;
-        }
-        .st-edit-form-grid {
-          display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;
-        }
-        .st-edit-actions {
-          display: flex; gap: 8px; flex-wrap: wrap;
-          padding-top: 14px; border-top: 1px solid var(--border-light);
-        }
-
-        /* DETAIL GRID */
-        .st-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-        .st-detail-card {
-          background: var(--white); border: 1px solid var(--border);
-          border-radius: var(--radius-lg); overflow: hidden;
-        }
-        .st-detail-header {
-          padding: 14px 18px 12px; border-bottom: 1px solid var(--border-light);
-          font-size: 13px; font-weight: 600; color: var(--ink);
-          display: flex; align-items: center; gap: 7px;
-        }
-        .st-detail-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--brand); }
-        .st-detail-body { padding: 14px 18px; display: flex; flex-direction: column; gap: 10px; }
-
-        .st-ach-item {
-          background: var(--surface); border: 1px solid var(--border-light);
-          border-radius: var(--radius); padding: 12px 14px;
-        }
-        .st-ach-actions {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 10px;
-        }
-        .st-ach-title { font-size: 13px; font-weight: 600; color: var(--ink); }
-        .st-ach-meta { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
-        .st-meta-pill {
-          font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
-          color: var(--slate-light); background: var(--white);
-          border: 1px solid var(--border-light);
-          border-radius: 100px; padding: 2px 8px;
-        }
-        .st-ach-btn {
-          font-size: 11px; font-weight: 600; color: var(--brand);
-          background: var(--brand-light); border: none;
-          border-radius: 7px; padding: 5px 10px; cursor: pointer;
-          transition: background 0.15s; white-space: nowrap;
-        }
-        .st-ach-btn:hover { background: rgba(26,86,219,0.15); }
-
-        .st-doc-item {
-          display: flex; align-items: center; gap: 10px;
-          background: var(--surface); border: 1px solid var(--border-light);
-          border-radius: var(--radius); padding: 10px 14px;
-        }
-        .st-doc-icon {
-          width: 32px; height: 32px; border-radius: 7px;
-          background: var(--white); border: 1px solid var(--border-light);
-          display: flex; align-items: center; justify-content: center;
-          font-size: 15px; flex-shrink: 0;
-        }
-        .st-doc-info { flex: 1; min-width: 0; }
-        .st-doc-title { font-size: 13px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .st-doc-type { font-size: 11px; color: var(--slate-light); margin-top: 1px; }
-        .st-doc-btn {
-          font-size: 12px; font-weight: 600; color: var(--brand);
-          background: var(--brand-light); border: none;
-          border-radius: 7px; padding: 5px 10px; cursor: pointer;
-          transition: background 0.15s; flex-shrink: 0;
-        }
-        .st-doc-btn:hover { background: rgba(26,86,219,0.15); }
-
-        .st-empty { font-size: 13px; color: var(--slate-light); padding: 12px 0; text-align: center; }
-
-        @media (max-width: 700px) {
-          .st-form-grid, .st-edit-form-grid, .st-detail-grid { grid-template-columns: 1fr; }
-        }
-      `}</style>
-
-      <div className="st-wrap">
-        <DashboardShell
-          title="Admin dashboard"
-          subtitle="Add, edit, search, and remove student profiles."
-          nav={[
-            { label: "Overview", href: "/admin" },
-            { label: "Students", href: "/admin/students" },
-            { label: "Student achievements", href: "/admin/student-achievements" },
-            { label: "Approvals", href: "/admin/approvals" },
-            { label: "Analytics", href: "/admin/analytics" },
-            { label: "Reports", href: "/admin/reports" },
-          ]}
-        >
-          {/* PAGE HEADER */}
-          <div className="st-page-header">
-            <div>
-              <div className="st-breadcrumb">
-                <span>Admin</span><span>›</span>
-                <span style={{ color: "var(--ink)" }}>Students</span>
-              </div>
-              <h1 className="st-page-title">Student <em>management</em></h1>
-              <p className="st-page-sub">Add, edit, search, and remove student profiles.</p>
+        {activeTab === "manage" && (
+          <div className="flex flex-1 items-center gap-2 max-w-2xl">
+            <div className="relative flex-1 group">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-500 transition-colors" size={16} />
+              <input
+                className="w-full bg-white border border-surface-200 rounded-xl pl-10 pr-4 py-2 text-xs font-semibold outline-none transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-100 shadow-sm tracking-tight"
+                placeholder="Search Student..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <div className="relative group shrink-0 hidden sm:block">
+              <Filter className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-500 transition-colors" size={14} />
+              <input
+                className="bg-white border border-surface-200 rounded-xl pl-10 pr-4 py-2 text-xs font-semibold outline-none transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-100 shadow-sm w-40 tracking-tight"
+                placeholder="Dept"
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+              />
             </div>
           </div>
+        )}
+      </div>
 
-          {/* TAB SWITCHER */}
-          <div className="st-tabs">
-            <button
-              className={`st-tab${activeTab === "add" ? " active" : ""}`}
-              type="button"
-              onClick={() => setActiveTab("add")}
-            >
-              + Add student
-            </button>
-            <button
-              className={`st-tab${activeTab === "manage" ? " active" : ""}`}
-              type="button"
-              onClick={() => setActiveTab("manage")}
-            >
-              Manage students
-            </button>
-          </div>
-
-          {/* ── ADD TAB ── */}
-          {activeTab === "add" ? (
-            <div className="st-card">
-              <div className="st-card-header">
-                <span className="st-card-title">
-                  <span className="st-card-title-dot" />
-                  Add new student
-                </span>
-                <label className="st-btn st-btn-excel">
-                  ↑ Upload Excel
-                  <input
-                    className="hidden"
-                    type="file"
-                    accept=".xlsx"
-                    onChange={async (event) => {
-                      const file = event.target.files?.[0];
-                      if (!file) return;
-                      setBulkMessage("Uploading Excel...");
+      {activeTab === "add" ? (
+        /* ── ENROLL TAB ── */
+        <div className="bg-white border border-surface-200 rounded-[32px] overflow-hidden shadow-panel animate-fade-up">
+           <div className="px-6 py-4 border-b border-surface-50 bg-surface-50/30 flex items-center justify-between">
+              <h2 className="font-display font-bold text-lg text-ink">New Enrollment</h2>
+              <label className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-xl text-[10px] font-bold hover:bg-emerald-600 hover:text-white transition-all cursor-pointer shadow-sm uppercase tracking-widest">
+                <Upload size={14} />
+                UPLOAD EXCEL
+                <input
+                  type="file"
+                  className="hidden"
+                  accept=".xlsx"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setBulkMessage("Processing Excel upload...");
+                    try {
                       const rows = await readExcelFile(file);
                       await api("/admin/students/bulk", { method: "POST", token, body: JSON.stringify({ rows }) });
-                      setBulkMessage("Bulk upload completed.");
-                      event.target.value = "";
+                      setBulkMessage("Students enrolled successfully from Excel.");
                       await queryClient.invalidateQueries({ queryKey: ["admin-students"] });
-                    }}
-                  />
-                </label>
-              </div>
-              <div className="st-card-body">
-                {bulkMessage ? <Alert tone="success">{bulkMessage}</Alert> : null}
-                {formError ? <Alert tone="error">{formError}</Alert> : null}
-                <form
-                  onSubmit={async (event) => {
-                    event.preventDefault();
-                    setFormError("");
-                    const formEl = event.currentTarget;
-                    const formData = new FormData(formEl);
-                    await createMutation.mutateAsync({
-                      name: formData.get("name"),
-                      email: formData.get("email"),
-                      password: formData.get("password"),
-                      studentId: formData.get("studentId"),
-                      department: formData.get("department"),
-                      program: formData.get("program"),
-                      admissionCategory: formData.get("admissionCategory"),
-                      year: Number(formData.get("year")),
-                      semester: Number(formData.get("semester")),
-                      graduationYear: formData.get("graduationYear") ? Number(formData.get("graduationYear")) : undefined,
-                      phone: formData.get("phone"),
-                    });
-                    formEl.reset();
+                    } catch (err) {
+                      setFormError("Excel upload failed. Check format.");
+                    }
                   }}
-                >
-                  <div className="st-form-grid">
-                    <div className="st-field">
-                      <label className="st-label">Full name</label>
-                      <input className="st-input" name="name" placeholder="e.g. Ananya Sharma" required />
+                />
+              </label>
+           </div>
+           
+           <div className="p-8">
+              {formError && <div className="mb-6"><Alert tone="error">{formError}</Alert></div>}
+              {bulkMessage && <div className="mb-6"><Alert tone="success">{bulkMessage}</Alert></div>}
+              
+              <form 
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  const fd = new FormData(e.currentTarget);
+                  await createMutation.mutateAsync(Object.fromEntries(fd.entries()));
+                }}
+              >
+                  {[
+                    { n: "name", l: "Full Name", p: "e.g. Ananya Sharma", r: true },
+                    { n: "email", l: "Email Address", p: "e.g. ananya@vignan.edu", r: true, t: "email" },
+                    { n: "password", l: "Temporary Password", p: "Set a password", r: true, t: "password" },
+                    { n: "studentId", l: "Reg Number", p: "e.g. 231FA04023", r: true },
+                    { n: "department", l: "Department", p: "e.g. CSE", r: true },
+                    { n: "program", l: "Program", p: "e.g. B.Tech", r: true },
+                  ].map(f => (
+                    <div key={f.n}>
+                      <label className={labelClasses}>{f.l}</label>
+                      <input name={f.n} className={inputClasses} placeholder={f.p} required={f.r} type={f.t || "text"} />
                     </div>
-                    <div className="st-field">
-                      <label className="st-label">Email</label>
-                      <input className="st-input" name="email" type="email" placeholder="e.g. ananya@example.edu" required />
-                    </div>
-                    <div className="st-field">
-                      <label className="st-label">Temporary password</label>
-                      <input className="st-input" name="password" type="password" placeholder="Set a temporary password" required />
-                    </div>
-                    <div className="st-field">
-                      <label className="st-label">Registration number</label>
-                      <input className="st-input" name="studentId" placeholder="e.g. 231FA04023" required />
-                    </div>
-                    <div className="st-field">
-                      <label className="st-label">Department</label>
-                      <input className="st-input" name="department" placeholder="e.g. Computer Science" required />
-                    </div>
-                    <div className="st-field">
-                      <label className="st-label">Program</label>
-                      <input className="st-input" name="program" placeholder="e.g. B.Tech" required />
-                    </div>
-                    <div className="st-field">
-                      <label className="st-label">Admission category</label>
-                      <input className="st-input" name="admissionCategory" placeholder="e.g. EAMCET / JEE / VSAT" />
-                    </div>
-                    <div className="st-field">
-                      <label className="st-label">Phone number</label>
-                      <input className="st-input" name="phone" placeholder="e.g. 9876543210" />
-                    </div>
-                    <div className="st-field">
-                      <label className="st-label">Year</label>
-                      <select className="st-input" name="year" required>
-                        {[1, 2, 3, 4].map((year) => (
-                          <option key={year} value={year}>Year {year}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="st-field">
-                      <label className="st-label">Semester</label>
-                      <select className="st-input" name="semester" required>
-                        <option value={1}>Semester 1</option>
-                        <option value={2}>Semester 2</option>
-                      </select>
-                    </div>
-                    <div className="st-field">
-                      <label className="st-label">Graduation year</label>
-                      <input className="st-input" name="graduationYear" type="number" placeholder="e.g. 2027" />
-                    </div>
-                  </div>
-                  <p className="st-hint">
-                    Excel headers supported: <code>name</code>, <code>email</code>, <code>studentId</code>, <code>department</code>, <code>program</code>, <code>admissionCategory</code>, <code>year</code>, <code>semester</code>, <code>graduationYear</code>, <code>phone</code>, <code>cgpa</code>, <code>password</code>. Registration number example: <code>231FA04023</code>.
-                  </p>
-                  <button className="st-btn st-btn-primary" type="submit">
-                    Create student →
-                  </button>
-                </form>
-              </div>
-            </div>
-          ) : (
-            /* ── MANAGE TAB ── */
-            <div className="st-card">
-            <div className="st-card-header">
-              <span className="st-card-title">
-                <span className="st-card-title-dot" />
-                Manage students
-              </span>
-              {isFetching ? (
-                <span className="st-loading-row">
-                  <span className="st-loading-dot" />
-                  Updating list...
-                </span>
-              ) : null}
-              <label className="st-btn st-btn-excel">
-                  ↑ Bulk update
-                  <input
-                    className="hidden"
-                    type="file"
-                    accept=".xlsx"
-                    onChange={async (event) => {
-                      const file = event.target.files?.[0];
-                      if (!file) return;
-                      setBulkMessage("Uploading Excel...");
-                      const rows = await readExcelFile(file);
-                      await api("/admin/students/bulk", { method: "PUT", token, body: JSON.stringify({ rows }) });
-                      setBulkMessage("Bulk update completed.");
-                      event.target.value = "";
-                      await queryClient.invalidateQueries({ queryKey: ["admin-students"] });
-                    }}
-                  />
-                </label>
-              </div>
-              <div className="st-card-body">
-                {/* SEARCH */}
-                <div className="st-search-row">
-                  <input
-                    className="st-search-input"
-                    placeholder="Search by registration number"
-                    value={search}
-                    onChange={(event) => { setSearch(event.target.value); setSelectedStudentId(""); }}
-                  />
-                  <input
-                    className="st-search-input"
-                    placeholder="Filter by department"
-                    value={department}
-                    onChange={(event) => { setDepartment(event.target.value); setSelectedStudentId(""); }}
-                  />
-                </div>
-
-                {/* SELECT */}
-                <div className="st-field" style={{ marginBottom: 16 }}>
-                  <label className="st-label">Select student</label>
-                  {isLoading ? (
-                    <div className="st-skeleton st-skeleton-row" />
-                  ) : (
-                    <select
-                    className="st-input"
-                    value={selectedStudentId}
-                    onChange={(event) => setSelectedStudentId(event.target.value)}
-                  >
-                    <option value="">Choose a student</option>
-                    {filteredStudents.map((student) => (
-                      <option key={student._id} value={student._id}>
-                        {student.studentId} — {student.fullName}
-                      </option>
-                    ))}
+                  ))}
+                  
+                  <div>
+                    <label className={labelClasses}>Year of Study</label>
+                    <select name="year" className={inputClasses} required>
+                       {[1, 2, 3, 4].map(y => <option key={y} value={y}>Year {y}</option>)}
                     </select>
-                  )}
+                  </div>
+                  <div>
+                    <label className={labelClasses}>Current Semester</label>
+                    <select name="semester" className={inputClasses} required>
+                       <option value={1}>Semester 1</option>
+                       <option value={2}>Semester 2</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelClasses}>Graduation Year</label>
+                    <input name="graduationYear" className={inputClasses} type="number" placeholder="e.g. 2027" />
+                  </div>
+
+                  <div className="lg:col-span-3 pt-6 border-t border-surface-100 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-slate-400">
+                      <Info size={16} />
+                      <span className="text-xs font-medium italic">All credentials will be sent to the student via email.</span>
+                    </div>
+                    <button type="submit" className="bg-brand-600 text-white font-bold px-8 py-3 rounded-2xl hover:bg-brand-700 hover:-translate-y-0.5 transition-all shadow-lg active:translate-y-0">
+                      COMPLETE ENROLLMENT
+                    </button>
+                  </div>
+              </form>
+           </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 xl:grid-cols-[320px_1fr] gap-6 items-start">
+          
+          {/* List Sidebar */}
+          <div className="bg-white border border-surface-200 rounded-[32px] overflow-hidden shadow-sm flex flex-col max-h-[700px]">
+            <div className="p-5 border-b border-surface-50 flex items-center justify-between bg-surface-50/30">
+               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                  Showing {filteredStudents.length} Students
+               </span>
+               {isFetching && <Loader2 size={14} className="text-brand-500 animate-spin" />}
+            </div>
+            <div className="flex-1 overflow-y-auto p-2 flex flex-col gap-1 custom-scrollbar">
+               {filteredStudents.map(s => (
+                 <button
+                   key={s._id}
+                   className={cn(
+                     "w-full text-left p-4 rounded-2xl transition-all border group",
+                     selectedStudentId === s._id 
+                       ? "bg-brand-50 border-brand-200" 
+                       : "bg-transparent border-transparent hover:bg-surface-50"
+                   )}
+                   onClick={() => setSelectedStudentId(s._id)}
+                 >
+                    <div className="flex items-center justify-between mb-1">
+                       <span className={cn("text-xs font-semibold tracking-tight", selectedStudentId === s._id ? "text-brand-700" : "text-slate-400 group-hover:text-ink")}>{s.studentId}</span>
+                       <ChevronRight size={14} className={cn("transition-transform", selectedStudentId === s._id ? "text-brand-500 translate-x-1" : "text-slate-300")} />
+                    </div>
+                    <div className="text-sm font-semibold text-ink leading-none">{s.fullName}</div>
+                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1.5">{s.department}</div>
+                 </button>
+               ))}
+            </div>
+          </div>
+
+          {/* Details View */}
+          <div className="flex flex-col gap-8">
+            {!selectedStudentId ? (
+              <div className="bg-white border-2 border-dashed border-surface-200 rounded-[32px] p-24 text-center">
+                 <div className="w-16 h-16 bg-surface-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <Search size={32} className="text-slate-300" />
+                 </div>
+                 <h3 className="font-display font-bold text-xl text-ink mb-2">Student Inspector</h3>
+                 <p className="text-sm text-slate-500 max-w-xs mx-auto">Select a student from the directory to view academic history, achievements, and documents.</p>
+              </div>
+            ) : (
+              <>
+                {/* Profile Edit Card */}
+                <div className="bg-white border border-surface-200 rounded-[32px] overflow-hidden shadow-panel animate-fade-up">
+                  <div className="p-6 border-b border-surface-50 bg-gradient-to-br from-brand-50/50 to-white flex items-center justify-between">
+                     <div className="flex items-center gap-3">
+                        <div className="w-11 h-11 bg-brand-600 text-white flex items-center justify-center rounded-xl text-xl font-bold font-display shadow-lg border-2 border-white">
+                          {selectedStudent?.fullName?.[0]}
+                        </div>
+                        <div>
+                           <h2 className="font-display font-bold text-xl text-ink leading-tight">{selectedStudent?.fullName}</h2>
+                           <p className="text-[10px] font-bold text-brand-600 uppercase tracking-widest">{selectedStudent?.studentId}</p>
+                        </div>
+                     </div>
+                     <button
+                       className="p-3 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                       onClick={() => deleteMutation.mutate(selectedStudentId)}
+                       title="Delete Profile"
+                     >
+                        <Trash2 size={24} />
+                     </button>
+                  </div>
+
+                  <div className="p-6">
+                    {saveMessage && <div className="mb-4"><Alert tone="success">{saveMessage}</Alert></div>}
+                    <form 
+                      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+                      onSubmit={async (e) => {
+                        e.preventDefault();
+                        const fd = new FormData(e.currentTarget);
+                        await updateMutation.mutateAsync({ id: selectedStudentId, values: Object.fromEntries(fd.entries()) });
+                      }}
+                    >
+                       <div><label className={labelClasses}>Full Name</label><input name="fullName" className={cn(inputClasses, "py-2 px-3")} defaultValue={selectedStudent?.fullName} /></div>
+                       <div><label className={labelClasses}>Email</label><input name="email" className={cn(inputClasses, "py-2 px-3")} defaultValue={selectedStudent?.email} /></div>
+                       <div><label className={labelClasses}>Dept</label><input name="department" className={cn(inputClasses, "py-2 px-3")} defaultValue={selectedStudent?.department} /></div>
+                       <div><label className={labelClasses}>Program</label><input name="program" className={cn(inputClasses, "py-2 px-3")} defaultValue={selectedStudent?.program} /></div>
+                       <div><label className={labelClasses}>Year</label>
+                         <select name="year" className={cn(inputClasses, "py-2 px-3")} defaultValue={selectedStudent?.year}>
+                           {[1,2,3,4].map(y => <option key={y} value={y}>Year {y}</option>)}
+                         </select>
+                       </div>
+                       <div><label className={labelClasses}>Sem</label>
+                          <select name="semester" className={cn(inputClasses, "py-2 px-3")} defaultValue={selectedStudent?.semester}>
+                            <option value={1}>Sem 1</option><option value={2}>Sem 2</option>
+                          </select>
+                       </div>
+                       <div><label className={labelClasses}>CGPA</label><input name="cgpa" className={cn(inputClasses, "py-2 px-3")} type="number" step="0.01" defaultValue={selectedStudent?.cgpa} /></div>
+                       <div><label className={labelClasses}>Phone</label><input name="phone" className={cn(inputClasses, "py-2 px-3")} defaultValue={selectedStudent?.phone} /></div>
+                       <div><label className={labelClasses}>Graduation Year</label><input name="graduationYear" className={cn(inputClasses, "py-2 px-3")} type="number" placeholder="2027" defaultValue={selectedStudent?.graduationYear} /></div>
+                       
+                       <div className="sm:col-span-2 lg:col-span-4 pt-4 border-t border-surface-50 flex justify-end">
+                          <button type="submit" className="bg-brand-600 text-white font-bold px-6 py-2.5 rounded-xl text-xs hover:bg-brand-700 hover:-translate-y-0.5 transition-all shadow-md flex items-center gap-2">
+                             <Save size={14} />
+                             UPDATE PROFILE
+                          </button>
+                       </div>
+                    </form>
+                  </div>
                 </div>
 
-                {error ? <Alert tone="error">Unable to load students. Please refresh.</Alert> : null}
-                {saveMessage ? <Alert tone="success">{saveMessage}</Alert> : null}
-                {bulkMessage ? <Alert tone="success">{bulkMessage}</Alert> : null}
-
-                {!isLoading && filteredStudents.length === 0 ? (
-                  <div className="st-select-hint">
-                    <span className="st-select-hint-icon">ðŸ”Ž</span>
-                    No students match your search. Try clearing filters.
-                  </div>
-                ) : selectedStudentId ? (
-                  <>
-                    {selectedStudent ? (
-                      <div className="st-edit-card" key={selectedStudent._id}>
-                        <form
-                          onSubmit={async (event) => {
-                            event.preventDefault();
-                            setSaveMessage("");
-                            const formData = new FormData(event.currentTarget);
-                            await updateMutation.mutateAsync({
-                              id: selectedStudent._id,
-                              values: {
-                                fullName: formData.get("fullName"),
-                                email: formData.get("email"),
-                                department: formData.get("department"),
-                                program: formData.get("program"),
-                                admissionCategory: formData.get("admissionCategory"),
-                                year: Number(formData.get("year")),
-                                semester: Number(formData.get("semester")),
-                                graduationYear: formData.get("graduationYear") ? Number(formData.get("graduationYear")) : undefined,
-                                cgpa: Number(formData.get("cgpa")),
-                                phone: formData.get("phone"),
-                              },
-                            });
-                          }}
-                        >
-                          <div className="st-edit-form-grid">
-                            <div className="st-field">
-                              <label className="st-label">Full name</label>
-                              <input className="st-input" name="fullName" defaultValue={selectedStudent.fullName} placeholder="e.g. Ananya Sharma" />
-                            </div>
-                            <div className="st-field">
-                              <label className="st-label">Email</label>
-                              <input className="st-input" name="email" defaultValue={selectedStudent.email} placeholder="e.g. ananya@example.edu" />
-                            </div>
-                            <div className="st-field">
-                              <label className="st-label">Department</label>
-                              <input className="st-input" name="department" defaultValue={selectedStudent.department} placeholder="e.g. Computer Science" />
-                            </div>
-                            <div className="st-field">
-                              <label className="st-label">Program</label>
-                              <input className="st-input" name="program" defaultValue={selectedStudent.program} placeholder="e.g. B.Tech" />
-                            </div>
-                            <div className="st-field">
-                              <label className="st-label">Admission category</label>
-                              <input className="st-input" name="admissionCategory" defaultValue={selectedStudent.admissionCategory ?? ""} placeholder="e.g. EAMCET / JEE / VSAT" />
-                            </div>
-                            <div className="st-field">
-                              <label className="st-label">Year</label>
-                              <select className="st-input" name="year" defaultValue={selectedStudent.year}>
-                                {[1, 2, 3, 4].map((year) => (
-                                  <option key={year} value={year}>Year {year}</option>
-                                ))}
-                              </select>
-                            </div>
-                            <div className="st-field">
-                              <label className="st-label">Semester</label>
-                              <select className="st-input" name="semester" defaultValue={selectedStudent.semester}>
-                                <option value={1}>Semester 1</option>
-                                <option value={2}>Semester 2</option>
-                              </select>
-                            </div>
-                            <div className="st-field">
-                              <label className="st-label">CGPA</label>
-                              <input className="st-input" name="cgpa" type="number" step="0.01" defaultValue={selectedStudent.cgpa ?? ""} placeholder="e.g. 8.4" />
-                            </div>
-                            <div className="st-field">
-                              <label className="st-label">Graduation year</label>
-                              <input className="st-input" name="graduationYear" type="number" defaultValue={selectedStudent.graduationYear ?? ""} placeholder="e.g. 2027" />
-                            </div>
-                            <div className="st-field">
-                              <label className="st-label">Phone</label>
-                              <input className="st-input" name="phone" defaultValue={selectedStudent.phone ?? ""} placeholder="e.g. 9876543210" />
-                            </div>
-                          </div>
-                          <div className="st-edit-actions">
-                            <button className="st-btn st-btn-primary" type="submit">Save changes</button>
-                            <button
-                              className="st-btn st-btn-danger"
-                              type="button"
-                              onClick={() => deleteMutation.mutate(selectedStudent._id)}
-                            >
-                              Remove student
-                            </button>
-                          </div>
-                        </form>
+                {/* History & Documents */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                   <div className="bg-white border border-surface-200 rounded-[32px] overflow-hidden shadow-sm">
+                      <div className="px-6 py-4 border-b border-surface-50 flex items-center gap-2 font-sans text-xs font-bold text-ink uppercase tracking-widest">
+                         <Award size={16} className="text-brand-500" />
+                         Achievement History
                       </div>
-                    ) : null}
-
-                    {selectedData ? (
-                      <div className="st-detail-grid">
-                        {/* ACHIEVEMENTS */}
-                        <div className="st-detail-card">
-                          <div className="st-detail-header">
-                            <span className="st-detail-dot" />
-                            Achievement history
-                          </div>
-                          <div className="st-detail-body">
-                            {(selectedData.achievements || []).length === 0 ? (
-                              <p className="st-empty">No achievements recorded.</p>
-                            ) : (
-                              selectedData.achievements.map((item: any) => (
-                                <div className="st-ach-item" key={item._id}>
-                                  <div className="st-ach-actions">
-                                    <div className="st-ach-title">{item.title}</div>
-                                    {item.certificateUrl ? (
-                                      <button
-                                        className="st-ach-btn"
-                                        type="button"
-                                        onClick={() => window.open(item.certificateUrl, "_blank", "noopener,noreferrer")}
-                                      >
-                                        View
-                                      </button>
-                                    ) : null}
-                                  </div>
-                                  <div className="st-ach-meta">
-                                    <span className="st-meta-pill">{item.category}</span>
-                                    <span className="st-meta-pill">{item.academicYear || "N/A"}</span>
-                                    <span className="st-meta-pill">Sem {item.semester || "-"}</span>
-                                    {item.activityType && <span className="st-meta-pill">{item.activityType}</span>}
-                                  </div>
+                      <div className="p-4 flex flex-col gap-3 min-h-[200px]">
+                         {selectedData?.achievements?.length === 0 ? (
+                           <div className="m-auto text-slate-400 text-xs font-medium italic">No entries found.</div>
+                         ) : (
+                           selectedData?.achievements?.map((a: any) => (
+                             <div key={a._id} className="p-4 border border-surface-100 rounded-2xl bg-surface-50 shadow-sm flex items-center justify-between">
+                                <div>
+                                  <div className="text-sm font-bold text-ink line-clamp-1">{a.title}</div>
+                                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tight mt-1">{a.category} &bull; {a.academicYear}</div>
                                 </div>
-                              ))
-                            )}
-                          </div>
-                        </div>
-
-                        {/* DOCUMENTS */}
-                        <div className="st-detail-card">
-                          <div className="st-detail-header">
-                            <span className="st-detail-dot" />
-                            Uploaded documents
-                          </div>
-                          <div className="st-detail-body">
-                            {(selectedData.documents || []).length === 0 ? (
-                              <p className="st-empty">No documents uploaded.</p>
-                            ) : (
-                              selectedData.documents.map((item: any) => (
-                                <div className="st-doc-item" key={item._id}>
-                                  <div className="st-doc-icon">📄</div>
-                                  <div className="st-doc-info">
-                                    <div className="st-doc-title">{item.title}</div>
-                                    <div className="st-doc-type">{item.type}</div>
-                                  </div>
-                                  <button
-                                    className="st-doc-btn"
-                                    type="button"
-                                    onClick={() => downloadMutation.mutate(item._id)}
-                                  >
-                                    View →
+                                {a.certificateUrl && (
+                                  <button onClick={() => window.open(a.certificateUrl, "_blank")} className="p-2 text-brand-600 hover:bg-white rounded-lg transition-colors">
+                                    <ExternalLink size={18} />
                                   </button>
-                                </div>
-                              ))
-                            )}
-                          </div>
-                        </div>
+                                )}
+                             </div>
+                           ))
+                         )}
                       </div>
-                    ) : null}
-                  </>
-                ) : (
-                  <div className="st-select-hint">
-                    <span className="st-select-hint-icon">🔍</span>
-                    Search by registration number and select a student to edit.
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </DashboardShell>
-      </div>
-    </>
+                   </div>
+
+                   <div className="bg-white border border-surface-200 rounded-[32px] overflow-hidden shadow-sm">
+                      <div className="px-6 py-4 border-b border-surface-50 flex items-center gap-2 font-sans text-xs font-bold text-ink uppercase tracking-widest">
+                         <FileText size={16} className="text-brand-500" />
+                         Uploaded Documents
+                      </div>
+                      <div className="p-4 flex flex-col gap-3 min-h-[200px]">
+                         {selectedData?.documents?.length === 0 ? (
+                           <div className="m-auto text-slate-400 text-xs font-medium italic">No files found.</div>
+                         ) : (
+                           selectedData?.documents?.map((d: any) => (
+                             <div key={d._id} className="p-4 border border-surface-100 rounded-2xl bg-surface-50 shadow-sm flex items-center justify-between group">
+                                <div className="flex items-center gap-3">
+                                   <div className="w-8 h-10 bg-white border border-surface-200 rounded-lg flex items-center justify-center font-bold text-[9px] text-slate-400 uppercase tracking-tighter shadow-sm">FILE</div>
+                                   <div>
+                                      <div className="text-sm font-bold text-ink line-clamp-1">{d.title}</div>
+                                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tight mt-0.5">{d.type}</div>
+                                   </div>
+                                </div>
+                                <button
+                                  className="text-brand-600 font-bold text-[10px] hover:underline"
+                                  onClick={async () => {
+                                    const { downloadUrl } = await api<{ downloadUrl: string }>(`/documents/${d._id}/download-url`, { token });
+                                    window.open(downloadUrl, "_blank");
+                                  }}
+                                >
+                                   VIEW →
+                                </button>
+                             </div>
+                           ))
+                         )}
+                      </div>
+                   </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </DashboardShell>
   );
 }

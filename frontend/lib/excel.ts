@@ -32,12 +32,41 @@ export function downloadExcelFile({
   rows,
   fileName,
   sheetName = "Sheet1",
+  hyperlinkColumns = [],
 }: {
   rows: Record<string, string | number | null | undefined>[];
   fileName: string;
   sheetName?: string;
+  hyperlinkColumns?: string[];
 }) {
   const worksheet = XLSX.utils.json_to_sheet(rows);
+  const headers = rows.length > 0 ? Object.keys(rows[0]) : [];
+
+  hyperlinkColumns.forEach((columnName) => {
+    const columnIndex = headers.indexOf(columnName);
+    if (columnIndex === -1) {
+      return;
+    }
+
+    rows.forEach((row, rowIndex) => {
+      const value = row[columnName];
+      if (!value || typeof value !== "string") {
+        return;
+      }
+
+      const cellAddress = XLSX.utils.encode_cell({ c: columnIndex, r: rowIndex + 1 });
+      const cell = worksheet[cellAddress];
+      if (!cell) {
+        return;
+      }
+
+      cell.l = { Target: value, Tooltip: value };
+      cell.s = {
+        font: { color: { rgb: "2563EB" }, underline: true },
+      };
+    });
+  });
+
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
   XLSX.writeFile(workbook, fileName);

@@ -8,81 +8,22 @@ export function StatCard({
   helper: string;
 }) {
   return (
-    <div style={{
-      background: "#ffffff",
-      border: "1px solid #e2e8f0",
-      borderRadius: 14,
-      padding: "22px 24px",
-      position: "relative",
-      overflow: "hidden",
-      transition: "transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease",
-      animation: "statFadeUp 0.4s ease both",
-    }}
-      onMouseEnter={(e) => {
-        const el = e.currentTarget as HTMLDivElement;
-        el.style.transform = "translateY(-2px)";
-        el.style.boxShadow = "0 20px 50px rgba(15,23,42,0.12)";
-        el.style.borderColor = "#cbd5e1";
-      }}
-      onMouseLeave={(e) => {
-        const el = e.currentTarget as HTMLDivElement;
-        el.style.transform = "translateY(0)";
-        el.style.boxShadow = "none";
-        el.style.borderColor = "#e2e8f0";
-      }}
-    >
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap');
-        @keyframes statFadeUp {
-          from { opacity: 0; transform: translateY(10px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
-
+    <div className="bg-white border border-surface-200 rounded-2xl p-6 relative overflow-hidden animate-fade-up hover:border-brand-200 hover:shadow-panel transition-all group">
       {/* Ambient glow spot */}
-      <div style={{
-        position: "absolute",
-        top: -24, right: -24,
-        width: 80, height: 80,
-        borderRadius: "50%",
-        background: "rgba(37,99,235,0.12)",
-        filter: "blur(22px)",
-        pointerEvents: "none",
-      }} />
+      <div className="absolute -top-6 -right-6 w-20 h-20 rounded-full bg-brand-50 blur-2xl opacity-60 pointer-events-none group-hover:opacity-100 transition-opacity" />
 
       {/* Label */}
-      <p style={{
-        fontFamily: "'Inter', sans-serif",
-        fontSize: 11,
-        letterSpacing: "0.12em",
-        textTransform: "uppercase",
-        color: "#64748b",
-        margin: 0,
-        fontWeight: 600,
-      }}>
+      <p className="font-sans text-[10px] font-bold tracking-widest uppercase text-slate-500 mb-2">
         {label}
       </p>
 
       {/* Value */}
-      <p style={{
-        fontFamily: "'Poppins', sans-serif",
-        fontSize: 38,
-        fontWeight: 600,
-        color: "#1e3a8a",
-        lineHeight: 1,
-        margin: "12px 0 8px",
-      }}>
+      <p className="font-display text-3xl font-semibold text-brand-700 leading-none mb-1.5 transition-transform group-hover:translate-x-0.5">
         {value}
       </p>
 
       {/* Helper */}
-      <p style={{
-        fontFamily: "'Inter', sans-serif",
-        fontSize: 12,
-        color: "#64748b",
-        margin: 0,
-        letterSpacing: "0.02em",
-      }}>
+      <p className="font-sans text-[11px] text-slate-400 font-semibold uppercase tracking-tight">
         {helper}
       </p>
     </div>

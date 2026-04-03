@@ -4,8 +4,10 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
+import { Eye, EyeOff } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/components/layout/providers";
+import { UniversityWordmark } from "@/components/layout/university-wordmark";
 import { AuthUser } from "@/lib/types";
 
 type SignUpValues = {
@@ -37,6 +39,8 @@ export default function SignUpPage() {
   const [error, setError] = useState<string | null>(null);
   const [parentError, setParentError] = useState<string | null>(null);
   const [signupType, setSignupType] = useState<"student" | "parent">("student");
+  const [showStudentPassword, setShowStudentPassword] = useState(false);
+  const [showParentPassword, setShowParentPassword] = useState(false);
   const graduationYears = Array.from({ length: 10 }, (_, index) => new Date().getFullYear() + index);
   const { register, handleSubmit } = useForm<SignUpValues>({
     defaultValues: { year: 1, semester: 1, graduationYear: new Date().getFullYear() + 3 },
@@ -137,6 +141,24 @@ export default function SignUpPage() {
           transition: opacity 0.15s;
         }
         .su-back:hover { opacity: 0.7; }
+        .su-brand-lockup {
+          display: grid;
+          gap: 14px;
+          margin-bottom: 20px;
+        }
+        .su-logo-panel {
+          width: min(100%, 380px);
+          height: 100px;
+          background: #ffffff;
+          border: 1px solid #d0d7de;
+          border-radius: 18px;
+          box-shadow: 0 12px 28px rgba(31,35,40,0.1);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 12px 18px;
+        }
+        .su-logo-panel img { width: 100%; height: 100%; object-fit: contain; }
 
         /* TAB SWITCHER */
         .su-tabs {
@@ -216,6 +238,31 @@ export default function SignUpPage() {
           background: #ffffff;
           box-shadow: 0 0 0 3px rgba(26,86,219,0.10);
         }
+        .su-password-wrap {
+          position: relative;
+        }
+        .su-password-toggle {
+          position: absolute;
+          top: 50%;
+          right: 10px;
+          transform: translateY(-50%);
+          width: 28px;
+          height: 28px;
+          border: none;
+          border-radius: 999px;
+          background: rgba(148, 163, 184, 0.12);
+          color: #57606a;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          padding: 0;
+          transition: background 0.18s, color 0.18s;
+        }
+        .su-password-toggle:hover {
+          background: rgba(26, 86, 219, 0.12);
+          color: #1a56db;
+        }
 
         .su-error {
           font-size: 13px; color: #b91c1c;
@@ -272,6 +319,11 @@ export default function SignUpPage() {
           {/* HEADER — back link + tab switcher */}
           <div className="su-card-header">
             <Link href="/" className="su-back">← Back to home</Link>
+            <div className="su-brand-lockup">
+              <div className="su-logo-panel">
+                <UniversityWordmark />
+              </div>
+            </div>
             <div className="su-tabs">
               <button
                 className={`su-tab${signupType === "student" ? " active" : ""}`}
@@ -313,7 +365,24 @@ export default function SignUpPage() {
                     </div>
                     <div className="su-field">
                       <label className="su-label">Password</label>
-                      <input className="su-input" type="password" placeholder="Create a strong password" {...register("password", { required: true })} />
+                      <div className="su-password-wrap">
+                        <input
+                          className="su-input"
+                          type={showStudentPassword ? "text" : "password"}
+                          placeholder="Create a strong password"
+                          style={{ paddingRight: 50 }}
+                          {...register("password", { required: true })}
+                        />
+                        <button
+                          type="button"
+                          className="su-password-toggle"
+                          aria-label={showStudentPassword ? "Hide password" : "Show password"}
+                          aria-pressed={showStudentPassword}
+                          onClick={() => setShowStudentPassword((current) => !current)}
+                        >
+                          {showStudentPassword ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />}
+                        </button>
+                      </div>
                     </div>
                     <div className="su-field">
                       <label className="su-label">Registration number</label>
@@ -332,10 +401,15 @@ export default function SignUpPage() {
                       <input className="su-input" placeholder="e.g. EAMCET / JEE / VSAT" {...register("admissionCategory")} />
                     </div>
                     <div className="su-field">
-                      <label className="su-label">Year</label>
+                      <label className="su-label">Academic year</label>
                       <select className="su-input" {...register("year", { valueAsNumber: true, required: true })}>
-                        {[1, 2, 3, 4].map((year) => (
-                          <option key={year} value={year}>Year {year}</option>
+                        {[
+                          { value: 1, label: "I" },
+                          { value: 2, label: "II" },
+                          { value: 3, label: "III" },
+                          { value: 4, label: "IV" },
+                        ].map((year) => (
+                          <option key={year.value} value={year.value}>{year.label}</option>
                         ))}
                       </select>
                     </div>
@@ -389,7 +463,24 @@ export default function SignUpPage() {
                     </div>
                     <div className="su-field">
                       <label className="su-label">Password</label>
-                      <input className="su-input" type="password" placeholder="Create a strong password" {...registerParent("password", { required: true })} />
+                      <div className="su-password-wrap">
+                        <input
+                          className="su-input"
+                          type={showParentPassword ? "text" : "password"}
+                          placeholder="Create a strong password"
+                          style={{ paddingRight: 50 }}
+                          {...registerParent("password", { required: true })}
+                        />
+                        <button
+                          type="button"
+                          className="su-password-toggle"
+                          aria-label={showParentPassword ? "Hide password" : "Show password"}
+                          aria-pressed={showParentPassword}
+                          onClick={() => setShowParentPassword((current) => !current)}
+                        >
+                          {showParentPassword ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />}
+                        </button>
+                      </div>
                     </div>
                     <div className="su-field">
                       <label className="su-label">Child registration number</label>

@@ -91,8 +91,8 @@ export default function SettingsPage() {
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="card space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-ink">Account preferences</h2>
-            <p className="mt-2 text-sm text-slate">Adjust notifications, appearance, and privacy controls.</p>
+            <h2 className="text-xl font-display font-semibold text-ink tracking-tight">Account preferences</h2>
+            <p className="mt-1 text-sm font-medium text-slate-500">Adjust notifications, appearance, and privacy controls.</p>
           </div>
           {statusMessage ? (
             <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate">
@@ -141,8 +141,8 @@ export default function SettingsPage() {
 
         <div className="space-y-6">
           <div className="card space-y-4">
-            <h3 className="text-lg font-semibold text-ink">Security</h3>
-            <div className="space-y-3 text-sm text-slate">
+            <h3 className="text-lg font-display font-semibold text-ink tracking-tight">Security</h3>
+            <div className="space-y-3 text-sm font-medium text-slate-500">
               <p>Last login: Today, 10:18 AM</p>
             </div>
             <div className="flex flex-wrap gap-3">
@@ -161,8 +161,8 @@ export default function SettingsPage() {
 
           {showPasswordForm ? (
             <div className="card space-y-4">
-              <h3 className="text-lg font-semibold text-ink">Change password</h3>
-              <p className="text-sm text-slate">Update your password and keep your account secure.</p>
+            <h3 className="text-lg font-display font-semibold text-ink tracking-tight">Change password</h3>
+            <p className="text-sm font-medium text-slate-500">Update your password and keep your account secure.</p>
               {passwordMessage ? (
                 <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate">
                   {passwordMessage}

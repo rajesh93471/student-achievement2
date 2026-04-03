@@ -1,4 +1,7 @@
+"use client";
+
 import { SignInForm } from "@/components/forms/sign-in-form";
+import { UniversityWordmark } from "@/components/layout/university-wordmark";
 
 export default function SignInPage() {
   return (
@@ -72,29 +75,27 @@ export default function SignInPage() {
         }
 
         .signin-logo {
-          width: 46px; height: 46px;
-          background: #1a56db;
-          border-radius: 13px;
+          width: 320px; height: 90px;
+          background: #ffffff;
+          border-radius: 18px;
           display: flex; align-items: center; justify-content: center;
-          color: white;
-          font-size: 21px;
-          font-weight: 700;
-          letter-spacing: -0.5px;
-          box-shadow: 0 2px 10px rgba(26,86,219,0.28);
+          border: 1px solid #dbe3ee;
+          box-shadow: 0 14px 28px rgba(26,86,219,0.12);
+          padding: 12px 18px;
         }
+        .signin-logo img { width: 100%; height: 100%; object-fit: contain; }
 
         .signin-portal-label {
-          font-size: 11px;
+          font-size: 13px;
           font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.1em;
+          letter-spacing: 0.06em;
           color: #8b949e;
           margin-bottom: 2px;
         }
 
         .signin-title {
           font-family: 'Instrument Serif', Georgia, serif;
-          font-size: 27px;
+          font-size: 34px;
           font-weight: 400;
           color: #0d1117;
           line-height: 1.1;
@@ -102,7 +103,7 @@ export default function SignInPage() {
         .signin-title em { font-style: italic; color: #1a56db; }
 
         .signin-subtitle {
-          font-size: 14px;
+          font-size: 16px;
           color: #57606a;
           line-height: 1.6;
         }
@@ -114,6 +115,7 @@ export default function SignInPage() {
         @media (max-width: 480px) {
           .signin-card-header,
           .signin-card-body { padding-left: 20px; padding-right: 20px; }
+          .signin-logo { width: 240px; height: 68px; }
         }
       `}</style>
 
@@ -126,9 +128,11 @@ export default function SignInPage() {
           <div className="signin-accent-bar" />
 
           <div className="signin-card-header">
-            <div className="signin-logo">U</div>
+            <div className="signin-logo">
+              <UniversityWordmark />
+            </div>
             <div>
-              <p className="signin-portal-label">University Portal</p>
+              <p className="signin-portal-label">Vignan&apos;s Deemed to be University</p>
               <h1 className="signin-title">
                 Welcome <em>back</em>
               </h1>

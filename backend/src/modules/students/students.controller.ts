@@ -15,6 +15,12 @@ export class StudentsController {
     return this.studentsService.getMyProfile(req.user);
   }
 
+  @Put("me")
+  @Roles("student")
+  updateMyProfile(@Req() req: any, @Body() body: any) {
+    return this.studentsService.updateMyProfile(req.user, body);
+  }
+
   @Get()
   @Roles("admin", "faculty")
   listStudents(@Req() req: any, @Query() query: any) {

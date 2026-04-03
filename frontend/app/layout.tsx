@@ -1,19 +1,19 @@
 import type { Metadata } from "next";
-import { DM_Mono, Playfair_Display } from "next/font/google";
+import { Plus_Jakarta_Sans, Outfit } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/layout/providers";
 
-const playfairDisplay = Playfair_Display({
+const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-playfair",
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-jakarta",
   display: "swap",
 });
 
-const dmMono = DM_Mono({
+const outfit = Outfit({
   subsets: ["latin"],
-  weight: ["300", "400", "500"],
-  variable: "--font-mono",
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-outfit",
   display: "swap",
 });
 
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${playfairDisplay.variable} ${dmMono.variable}`}>
+    <html lang="en" className={`${plusJakartaSans.variable} ${outfit.variable} antialiased font-sans`}>
       <body>
         <Providers>{children}</Providers>
       </body>

@@ -4,6 +4,20 @@ import { createDownloadUrl, createUploadUrl } from "../../utils/s3";
 
 const allowedMimeTypes = ["application/pdf", "image/jpeg", "image/png"];
 
+const buildSafeStorageKey = (userId: string, fileName: string) => {
+  const trimmedFileName = String(fileName || "").trim();
+  const extensionMatch = trimmedFileName.match(/(\.[a-zA-Z0-9]+)$/);
+  const extension = extensionMatch ? extensionMatch[1].toLowerCase() : "";
+  const baseName = extension ? trimmedFileName.slice(0, -extension.length) : trimmedFileName;
+  const safeBaseName = baseName
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 40) || "file";
+
+  return `students/${userId}/${Date.now()}-${safeBaseName}${extension}`;
+};
+
 @Injectable()
 export class DocumentsService {
   constructor(
@@ -15,7 +29,7 @@ export class DocumentsService {
     if (!fileName || !contentType || !allowedMimeTypes.includes(contentType)) {
       throw new BadRequestException("Unsupported file type");
     }
-    const key = `students/${user.id}/${Date.now()}-${fileName}`;
+    const key = buildSafeStorageKey(user.id, fileName);
     return createUploadUrl({ key, contentType });
   }
 

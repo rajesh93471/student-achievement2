@@ -52,9 +52,10 @@ function ChartHeader({ title, accent }: { title: string; accent: string }) {
 
 /* ─── Shared axis / grid styles ──────────────────────────────────────────── */
 const axisStyle = {
-  fontFamily: "'Inter', sans-serif",
-  fontSize: 11,
-  fill: "#64748b",
+  fontFamily: "var(--font-jakarta)",
+  fontSize: 10,
+  fontWeight: 600,
+  fill: "#94a3b8",
   letterSpacing: "0.02em",
 };
 
@@ -97,12 +98,17 @@ export function DepartmentBarChart({
         </div>
       </div>
 
-      <div style={{ height: 288 }}>
+      <div style={{ height: 320 }}>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} barGap={4} barCategoryGap="30%">
+          <BarChart 
+            data={data} 
+            barGap={4} 
+            barCategoryGap="35%"
+            margin={{ top: 10, right: 10, left: -20, bottom: 60 }}
+          >
             <CartesianGrid
               strokeDasharray="3 3"
-              stroke="#e2e8f0"
+              stroke="#f1f5f9"
               vertical={false}
             />
             <XAxis
@@ -110,23 +116,27 @@ export function DepartmentBarChart({
               tick={axisStyle}
               axisLine={false}
               tickLine={false}
+              interval={0}
+              angle={-25}
+              textAnchor="end"
+              height={80}
             />
             <YAxis
               tick={axisStyle}
               axisLine={false}
               tickLine={false}
-              width={28}
+              width={60}
             />
             <Tooltip
               content={<DarkTooltip />}
-              cursor={{ fill: "rgba(37,99,235,0.06)" }}
+              cursor={{ fill: "rgba(37,99,235,0.04)" }}
             />
             <Bar
               dataKey="totalStudents"
-              name="students"
+              name="Students"
               fill="#2563eb"
-              radius={[6, 6, 0, 0]}
-              opacity={0.85}
+              radius={[4, 4, 0, 0]}
+              maxBarSize={45}
             />
           </BarChart>
         </ResponsiveContainer>
@@ -188,9 +198,12 @@ export function GrowthLineChart({
         </div>
       )}
 
-      <div style={{ height: 288 }}>
+      <div style={{ height: 320 }}>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data}>
+          <LineChart 
+            data={data}
+            margin={{ top: 10, right: 30, left: -20, bottom: 20 }}
+          >
             <defs>
               <linearGradient id="lineGlow" x1="0" y1="0" x2="1" y2="0">
                 <stop offset="0%"   stopColor="#3b82f6" stopOpacity={0.6} />
@@ -199,7 +212,7 @@ export function GrowthLineChart({
             </defs>
             <CartesianGrid
               strokeDasharray="3 3"
-              stroke="#e2e8f0"
+              stroke="#f1f5f9"
               vertical={false}
             />
             <XAxis
@@ -207,12 +220,13 @@ export function GrowthLineChart({
               tick={axisStyle}
               axisLine={false}
               tickLine={false}
+              dy={10}
             />
             <YAxis
               tick={axisStyle}
               axisLine={false}
               tickLine={false}
-              width={28}
+              width={60}
             />
             <Tooltip
               content={<DarkTooltip />}

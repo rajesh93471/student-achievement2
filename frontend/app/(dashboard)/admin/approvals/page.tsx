@@ -6,12 +6,15 @@ import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { useAuth } from "@/components/layout/providers";
 import { api } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { CheckCircle2, XCircle, Award, ExternalLink, MessageSquare, ListFilter, Trash2, CheckSquare } from "lucide-react";
 
 export default function AdminApprovalsPage() {
   const { token } = useAuth();
   const queryClient = useQueryClient();
   const [feedbackById, setFeedbackById] = useState<Record<string, string>>({});
   const [selectedIds, setSelectedIds] = useState<Record<string, boolean>>({});
+
   const { data } = useQuery({
     queryKey: ["admin-approvals"],
     queryFn: () => api<{ achievements: any[] }>("/achievements?status=pending", { token }),
@@ -36,7 +39,10 @@ export default function AdminApprovalsPage() {
   });
 
   const achievements = data?.achievements || [];
-  const selectedList = achievements.filter((item) => selectedIds[item._id]);
+  const selectedList = achievements.filter((item, index) => {
+    const itemId = item._id || item.id || `achievement-${index}`;
+    return selectedIds[itemId];
+  });
   const allSelected = achievements.length > 0 && selectedList.length === achievements.length;
 
   const toggleSelectAll = () => {
@@ -45,16 +51,18 @@ export default function AdminApprovalsPage() {
       return;
     }
     const next: Record<string, boolean> = {};
-    achievements.forEach((item) => {
-      next[item._id] = true;
+    achievements.forEach((item, index) => {
+      next[item._id || item.id || `achievement-${index}`] = true;
     });
     setSelectedIds(next);
   };
 
   const approveSelected = async () => {
     for (const item of selectedList) {
+      const itemId = item._id || item.id;
+      if (!itemId) continue;
       await reviewMutation.mutateAsync({
-        id: item._id,
+        id: itemId,
         status: "approved",
         recommendedForAward: false,
       });
@@ -63,421 +71,150 @@ export default function AdminApprovalsPage() {
   };
 
   return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&display=swap');
+    <DashboardShell
+      title="Approvals Queue"
+      subtitle="Review, approve, and comment on student achievement submissions."
+      nav={[
+        { label: "Overview", href: "/admin" },
+        { label: "Students", href: "/admin/students" },
+        { label: "Student achievements", href: "/admin/student-achievements" },
+        { label: "Approvals", href: "/admin/approvals" },
+        { label: "Analytics", href: "/admin/analytics" },
+        { label: "Reports", href: "/admin/reports" },
+      ]}
+    >
+      {/* ── Bulk Actions Bar ── */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-2 animate-fade-up">
+        <div className="flex items-center gap-2">
+          <button 
+            className={cn(
+              "flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all shadow-sm",
+              allSelected ? "bg-brand-50 text-brand-700 border-brand-200" : "bg-white text-slate-500 border-surface-200 hover:border-brand-200 hover:text-brand-600"
+            )}
+            onClick={toggleSelectAll}
+          >
+            <CheckSquare size={14} />
+            {allSelected ? "DESELECT" : "SELECT ALL"}
+          </button>
+          
+          <button
+            className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-xl text-xs font-bold hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all shadow-sm disabled:opacity-40"
+            disabled={selectedList.length === 0 || reviewMutation.isPending}
+            onClick={approveSelected}
+          >
+            <CheckCircle2 size={14} />
+            APPROVE ({selectedList.length})
+          </button>
+        </div>
+        
+        <div className="flex items-center gap-2 px-2.5 py-1 bg-amber-50 border border-amber-100 rounded-full text-[9px] font-bold text-amber-700 uppercase tracking-widest">
+          <ListFilter size={10} />
+          {achievements.length} PENDING
+        </div>
+      </div>
 
-        .ap-wrap {
-          --ink: #0d1117;
-          --slate: #57606a;
-          --slate-light: #8b949e;
-          --brand: #1a56db;
-          --brand-light: #eef2ff;
-          --green: #16a34a;
-          --green-light: #dcfce7;
-          --red: #b91c1c;
-          --red-light: #fee2e2;
-          --amber: #a16207;
-          --amber-light: #fef9c3;
-          --surface: #f6f8fa;
-          --white: #ffffff;
-          --border: #d0d7de;
-          --border-light: #eaeef2;
-          --radius-lg: 18px;
-          --radius-xl: 24px;
-          --shadow: 0 3px 12px rgba(31,35,40,0.08), 0 1px 3px rgba(31,35,40,0.04);
-          --shadow-lg: 0 8px 24px rgba(31,35,40,0.10), 0 2px 6px rgba(31,35,40,0.05);
-          --font-display: 'Instrument Serif', Georgia, serif;
-          --font-body: 'Geist', system-ui, sans-serif;
-          font-family: var(--font-body);
-          color: var(--ink);
-          -webkit-font-smoothing: antialiased;
-        }
-
-        /* PAGE HEADER */
-        .ap-page-header {
-          padding: 28px 0 24px;
-          border-bottom: 1px solid var(--border-light);
-          margin-bottom: 28px;
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-          gap: 16px;
-          flex-wrap: wrap;
-        }
-        .ap-breadcrumb {
-          font-size: 11px; font-weight: 600;
-          text-transform: uppercase; letter-spacing: 0.08em;
-          color: var(--slate-light); margin-bottom: 8px;
-          display: flex; align-items: center; gap: 5px;
-        }
-        .ap-page-title {
-          font-family: var(--font-display);
-          font-size: 30px; font-weight: 400;
-          color: var(--ink); line-height: 1.1;
-        }
-        .ap-page-title em { font-style: italic; color: var(--brand); }
-        .ap-page-sub { font-size: 14px; color: var(--slate); margin-top: 5px; }
-        .ap-count-badge {
-          display: flex; align-items: center; gap: 6px;
-          font-size: 12px; color: var(--slate-light);
-          background: var(--surface);
-          border: 1px solid var(--border-light);
-          border-radius: 100px; padding: 6px 14px;
-          white-space: nowrap; margin-top: 4px;
-        }
-        .ap-count-dot {
-          width: 6px; height: 6px;
-          background: var(--amber); border-radius: 50%;
-        }
-
-        /* OUTER CARD */
-        .ap-outer-card {
-          background: var(--white);
-          border: 1px solid var(--border);
-          border-radius: var(--radius-xl);
-          overflow: hidden;
-        }
-        .ap-outer-header {
-          display: flex; align-items: center; justify-content: space-between;
-          padding: 18px 24px 14px;
-          border-bottom: 1px solid var(--border-light);
-        }
-        .ap-outer-title {
-          font-size: 14px; font-weight: 600; color: var(--ink);
-          display: flex; align-items: center; gap: 8px;
-        }
-        .ap-outer-title-dot {
-          width: 7px; height: 7px;
-          border-radius: 50%; background: var(--amber);
-        }
-        .ap-outer-tag {
-          font-size: 11px; font-weight: 500;
-          color: var(--amber);
-          background: var(--amber-light);
-          border-radius: 100px; padding: 3px 10px;
-        }
-        .ap-list { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
-
-        /* ACHIEVEMENT ITEM */
-        .ap-item {
-          background: var(--white);
-          border: 1px solid var(--border);
-          border-radius: var(--radius-lg);
-          overflow: hidden;
-          transition: box-shadow 0.2s, transform 0.2s;
-        }
-        .ap-item:hover {
-          box-shadow: var(--shadow-lg);
-          transform: translateY(-2px);
-        }
-
-        .ap-item-header {
-          padding: 18px 20px 14px;
-          border-bottom: 1px solid var(--border-light);
-          display: flex; align-items: flex-start;
-          justify-content: space-between; gap: 12px;
-        }
-        .ap-item-title {
-          font-size: 15px; font-weight: 600; color: var(--ink);
-        }
-        .ap-item-meta {
-          display: flex; align-items: center; gap: 6px;
-          flex-wrap: wrap; margin-top: 5px;
-        }
-        .ap-meta-pill {
-          font-size: 11px; font-weight: 500;
-          color: var(--slate);
-          background: var(--surface);
-          border: 1px solid var(--border-light);
-          border-radius: 100px; padding: 2px 9px;
-        }
-        .ap-status-pill {
-          font-size: 11px; font-weight: 600;
-          color: var(--amber);
-          background: var(--amber-light);
-          border-radius: 100px; padding: 3px 10px;
-          white-space: nowrap;
-        }
-
-        .ap-item-body { padding: 16px 20px; }
-        .ap-desc {
-          font-size: 13px; color: var(--slate);
-          line-height: 1.6; margin-bottom: 12px;
-        }
-        .ap-cert-link {
-          display: inline-flex; align-items: center; gap: 5px;
-          font-size: 12px; font-weight: 600;
-          color: var(--brand);
-          background: var(--brand-light);
-          border-radius: 8px; padding: 6px 12px;
-          text-decoration: none;
-          transition: background 0.15s;
-          margin-bottom: 14px;
-        }
-        .ap-cert-link:hover { background: rgba(26,86,219,0.15); }
-
-        .ap-textarea-label {
-          font-size: 11px; font-weight: 700;
-          text-transform: uppercase; letter-spacing: 0.08em;
-          color: var(--slate-light); margin-bottom: 6px;
-          display: block;
-        }
-        .ap-textarea {
-          font-family: 'Geist', system-ui, sans-serif;
-          font-size: 13px; color: var(--ink);
-          background: var(--surface);
-          border: 1.5px solid var(--border);
-          border-radius: 10px;
-          padding: 10px 14px;
-          width: 100%;
-          min-height: 88px;
-          resize: vertical;
-          outline: none;
-          transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
-          line-height: 1.6;
-        }
-        .ap-textarea::placeholder { color: var(--slate-light); }
-        .ap-textarea:focus {
-          border-color: var(--brand);
-          background: var(--white);
-          box-shadow: 0 0 0 3px rgba(26,86,219,0.10);
-        }
-
-        /* ACTION BUTTONS */
-        .ap-actions {
-          display: flex; flex-wrap: wrap; gap: 8px;
-          padding: 14px 20px 18px;
-          border-top: 1px solid var(--border-light);
-          background: var(--surface);
-        }
-        .ap-bulk-actions {
-          display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
-        }
-        .ap-select-all {
-          font-size: 12px; font-weight: 600; color: var(--slate);
-          background: var(--surface); border: 1px solid var(--border);
-          border-radius: 9px; padding: 6px 12px; cursor: pointer;
-          transition: all 0.15s;
-        }
-        .ap-select-all:hover { border-color: var(--brand); color: var(--brand); }
-        .ap-btn-bulk {
-          font-size: 12px; font-weight: 600;
-          border: none; border-radius: 9px; padding: 6px 12px;
-          background: var(--green-light); color: var(--green);
-          cursor: pointer; transition: all 0.15s;
-        }
-        .ap-btn-bulk:hover { background: #bbf7d0; }
-        .ap-checkbox {
-          width: 16px; height: 16px; cursor: pointer;
-        }
-        .ap-btn {
-          font-family: 'Geist', system-ui, sans-serif;
-          font-size: 13px; font-weight: 600;
-          border: none; border-radius: 9px;
-          padding: 8px 16px;
-          cursor: pointer;
-          transition: all 0.15s;
-          display: inline-flex; align-items: center; gap: 5px;
-        }
-        .ap-btn-approve {
-          background: var(--green-light);
-          color: var(--green);
-        }
-        .ap-btn-approve:hover { background: #bbf7d0; }
-
-        .ap-btn-recommend {
-          background: var(--brand-light);
-          color: var(--brand);
-        }
-        .ap-btn-recommend:hover { background: rgba(26,86,219,0.15); }
-
-        .ap-btn-reject {
-          background: var(--red-light);
-          color: var(--red);
-        }
-        .ap-btn-reject:hover { background: #fecaca; }
-
-        .ap-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        /* EMPTY STATE */
-        .ap-empty {
-          padding: 56px 24px;
-          text-align: center;
-          color: var(--slate-light);
-          font-size: 14px;
-        }
-        .ap-empty-icon { font-size: 32px; margin-bottom: 12px; }
-        .ap-empty-title { font-size: 15px; font-weight: 600; color: var(--slate); margin-bottom: 4px; }
-
-        @media (max-width: 640px) {
-          .ap-actions { flex-direction: column; }
-          .ap-btn { width: 100%; justify-content: center; }
-        }
-      `}</style>
-
-      <div className="ap-wrap">
-        <DashboardShell
-          title="Admin dashboard"
-          subtitle="Approve, reject, and comment on student achievements."
-          nav={[
-            { label: "Overview", href: "/admin" },
-            { label: "Students", href: "/admin/students" },
-            { label: "Student achievements", href: "/admin/student-achievements" },
-            { label: "Approvals", href: "/admin/approvals" },
-            { label: "Analytics", href: "/admin/analytics" },
-            { label: "Reports", href: "/admin/reports" },
-          ]}
-        >
-          {/* PAGE HEADER */}
-          <div className="ap-page-header">
-            <div>
-              <div className="ap-breadcrumb">
-                <span>Admin</span>
-                <span>›</span>
-                <span style={{ color: "var(--ink)" }}>Approvals</span>
-              </div>
-              <h1 className="ap-page-title">
-                Pending <em>approvals</em>
-              </h1>
-              <p className="ap-page-sub">
-                Review, approve, and comment on student achievement submissions.
-              </p>
-            </div>
-            <div className="ap-count-badge">
-              <span className="ap-count-dot" />
-              {(data?.achievements || []).length} pending
-            </div>
+      {/* ── List ── */}
+      <div className="flex flex-col gap-4 animate-fade-up" style={{ animationDelay: "100ms" }}>
+        {achievements.length === 0 ? (
+          <div className="text-center py-16 border-2 border-dashed border-surface-200 rounded-3xl bg-white">
+            <CheckCircle2 size={48} className="mx-auto mb-3 text-emerald-100" />
+            <h3 className="font-display font-semibold text-xl text-ink mb-1">Queue is empty</h3>
+            <p className="text-xs text-slate-400 font-medium">All student achievements have been processed.</p>
           </div>
-
-          {/* APPROVALS LIST */}
-          <div className="ap-outer-card">
-            <div className="ap-outer-header">
-              <span className="ap-outer-title">
-                <span className="ap-outer-title-dot" />
-                Achievement submissions
-              </span>
-              <div className="ap-bulk-actions">
-                <button className="ap-select-all" type="button" onClick={toggleSelectAll}>
-                  {allSelected ? "Clear selection" : "Select all"}
-                </button>
-                <button
-                  className="ap-btn-bulk"
-                  type="button"
-                  disabled={selectedList.length === 0 || reviewMutation.isPending}
-                  onClick={approveSelected}
-                >
-                  Approve selected
-                </button>
-                <span className="ap-outer-tag">Pending review</span>
-              </div>
-            </div>
-
-            {(data?.achievements || []).length === 0 ? (
-              <div className="ap-empty">
-                <div className="ap-empty-icon">✓</div>
-                <div className="ap-empty-title">All caught up</div>
-                No pending achievements to review.
-              </div>
-            ) : (
-              <div className="ap-list">
-                {achievements.map((item) => (
-                  <div key={item._id} className="ap-item">
-
-                    {/* ITEM HEADER */}
-                    <div className="ap-item-header">
-                      <div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-                          <input
-                            className="ap-checkbox"
-                            type="checkbox"
-                            checked={!!selectedIds[item._id]}
-                            onChange={(event) =>
-                              setSelectedIds((current) => ({
-                                ...current,
-                                [item._id]: event.target.checked,
-                              }))
-                            }
-                          />
-                          <span className="ap-item-title">{item.title}</span>
-                        </div>
-                        <div className="ap-item-meta">
-                          <span className="ap-meta-pill">{item.student?.fullName}</span>
-                          <span className="ap-meta-pill">{item.student?.studentId}</span>
-                          <span className="ap-meta-pill">{item.student?.department}</span>
-                          <span className="ap-meta-pill">{item.category}</span>
-                          <span className="ap-meta-pill">{formatDate(item.date)}</span>
-                        </div>
+        ) : (
+          achievements.map((item, index) => {
+            const itemId = item._id || item.id || `achievement-${index}`;
+            return (
+              <div key={itemId} className="bg-white border border-surface-200 rounded-3xl overflow-hidden hover:border-brand-300 transition-all">
+                <div className="px-5 py-3 border-b border-surface-50 bg-surface-50/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 rounded border-surface-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
+                      checked={!!selectedIds[itemId]}
+                      onChange={(e) => setSelectedIds(c => ({ ...c, [itemId]: e.target.checked }))}
+                    />
+                    <div>
+                      <h3 className="font-display font-semibold text-base text-ink leading-tight">{item.title}</h3>
+                      <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                        <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{item.student?.fullName}</span>
+                        <span className="w-0.5 h-0.5 rounded-full bg-slate-300 hidden sm:block"></span>
+                        <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{item.student?.studentId}</span>
+                        <span className="w-0.5 h-0.5 rounded-full bg-slate-300 hidden sm:block"></span>
+                        <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{item.category}</span>
                       </div>
-                      <span className="ap-status-pill">⏳ Pending</span>
                     </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded-lg bg-amber-50 text-amber-600 border border-amber-100 text-[8px] font-bold uppercase tracking-widest shrink-0">PENDING</span>
+                  </div>
+                </div>
 
-                    {/* ITEM BODY */}
-                    <div className="ap-item-body">
-                      {item.description ? (
-                        <p className="ap-desc">{item.description}</p>
-                      ) : null}
-
-                      {item.certificateUrl ? (
-                        <a
-                          className="ap-cert-link"
-                          href={item.certificateUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          📄 View certificate →
-                        </a>
-                      ) : null}
-
-                      <label className="ap-textarea-label">Feedback for student</label>
+                <div className="p-5">
+                  {item.description && <p className="text-xs text-slate-500 font-medium leading-relaxed mb-4">{item.description}</p>}
+                  
+                  <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-6 items-start">
+                    <div className="flex flex-col gap-1.5">
+                      <label className="flex items-center gap-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                        <MessageSquare size={10} />
+                        Review Note
+                      </label>
                       <textarea
-                        className="ap-textarea"
-                        placeholder="Write feedback for the student (optional)"
-                        value={feedbackById[item._id] || ""}
-                        onChange={(event) =>
-                          setFeedbackById((current) => ({
-                            ...current,
-                            [item._id]: event.target.value,
-                          }))
-                        }
+                        className="w-full bg-surface-50 border border-surface-100 rounded-2xl px-4 py-2.5 text-ink text-sm font-medium outline-none transition-all focus:border-brand-400 focus:bg-white focus:ring-4 focus:ring-brand-100 min-h-[60px] resize-none"
+                        placeholder="Add private review note..."
+                        value={feedbackById[itemId] || ""}
+                        onChange={(e) => setFeedbackById(c => ({ ...c, [itemId]: e.target.value }))}
                       />
                     </div>
 
-                    {/* ACTIONS */}
-                    <div className="ap-actions">
-                      <button
-                        className="ap-btn ap-btn-approve"
-                        type="button"
-                        disabled={reviewMutation.isPending}
-                        onClick={() => reviewMutation.mutate({ id: item._id, status: "approved", recommendedForAward: false })}
-                      >
-                        ✓ Approve
-                      </button>
-                      <button
-                        className="ap-btn ap-btn-recommend"
-                        type="button"
-                        disabled={reviewMutation.isPending}
-                        onClick={() => reviewMutation.mutate({ id: item._id, status: "approved", recommendedForAward: true })}
-                      >
-                        ★ Approve + Recommend
-                      </button>
-                      <button
-                        className="ap-btn ap-btn-reject"
-                        type="button"
-                        disabled={reviewMutation.isPending}
-                        onClick={() => reviewMutation.mutate({ id: item._id, status: "rejected", recommendedForAward: false })}
-                      >
-                        ✕ Reject
-                      </button>
-                    </div>
-
+                    {item.certificateUrl && (
+                      <div className="flex flex-col gap-1.5">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Verification</span>
+                        <a 
+                          href={item.certificateUrl} 
+                          target="_blank" 
+                          rel="noreferrer"
+                          className="flex items-center px-4 py-3 rounded-2xl border border-surface-100 bg-surface-50 hover:bg-brand-50 hover:border-brand-200 text-brand-600 transition-all gap-2"
+                        >
+                          <ExternalLink size={16} />
+                          <span className="text-[10px] font-bold uppercase tracking-tight">View Doc</span>
+                        </a>
+                      </div>
+                    )}
                   </div>
-                ))}
+
+                  <div className="flex flex-wrap items-center gap-2 mt-5 pt-4 border-t border-surface-50">
+                    <button
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl text-[10px] font-bold hover:bg-emerald-700 hover:-translate-y-0.5 transition-all shadow-md active:translate-y-0 disabled:opacity-50"
+                      disabled={reviewMutation.isPending}
+                      onClick={() => reviewMutation.mutate({ id: itemId, status: "approved", recommendedForAward: false })}
+                    >
+                      <CheckCircle2 size={14} />
+                      APPROVE
+                    </button>
+                    <button
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-xl text-[10px] font-bold hover:bg-brand-700 hover:-translate-y-0.5 transition-all shadow-md active:translate-y-0 disabled:opacity-50"
+                      disabled={reviewMutation.isPending}
+                      onClick={() => reviewMutation.mutate({ id: itemId, status: "approved", recommendedForAward: true })}
+                    >
+                      <Award size={14} />
+                      APPROVE + RECOMMEND
+                    </button>
+                    <button
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-rose-50 text-rose-600 border border-rose-100 rounded-xl text-[10px] font-bold hover:bg-rose-600 hover:text-white hover:border-rose-600 transition-all disabled:opacity-50"
+                      disabled={reviewMutation.isPending}
+                      onClick={() => reviewMutation.mutate({ id: itemId, status: "rejected", recommendedForAward: false })}
+                    >
+                      <XCircle size={14} />
+                      REJECT
+                    </button>
+                  </div>
+                </div>
               </div>
-            )}
-          </div>
-        </DashboardShell>
+            );
+          })
+        )}
       </div>
-    </>
+    </DashboardShell>
   );
 }

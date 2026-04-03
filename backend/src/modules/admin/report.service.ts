@@ -94,6 +94,8 @@ export const generateStudentAchievementsPdf = async ({
     academicYear?: string | null;
     semester?: number | null;
     activityType?: string | null;
+    organizedBy?: string | null;
+    position?: string | null;
     status?: string | null;
     date?: Date | string | null;
     certificateUrl?: string | null;
@@ -178,15 +180,24 @@ export const generateStudentAchievementsPdf = async ({
 
     const drawAchievementItem = async (item: (typeof achievements)[number]) => {
       ensureSpace(220);
-      const achievementYear = item.date ? new Date(item.date).getFullYear() : "";
+      const achievementDate = item.date ? new Date(item.date) : null;
+      const achievementDateLabel =
+        achievementDate && !Number.isNaN(achievementDate.getTime())
+          ? achievementDate.toLocaleDateString("en-CA")
+          : "";
 
       doc.font("Helvetica-Bold").fontSize(12).fillColor("#0d1117").text(item.title || "Untitled achievement");
       doc.moveDown(0.2);
       drawMutedText(
         [
+          `Stream: ${getAchievementGroup(item.category) === "Technical achievements" ? "Technical" : "Non-technical"}`,
           item.category ? `Category: ${item.category}` : "",
-          achievementYear ? `Year: ${achievementYear}` : "",
+          achievementDateLabel ? `Date: ${achievementDateLabel}` : "",
+          item.academicYear ? `Academic year: ${item.academicYear}` : "",
+          item.semester != null ? `Semester: ${item.semester}` : "",
           item.activityType ? `Activity type: ${item.activityType}` : "",
+          item.organizedBy ? `Organized by: ${item.organizedBy}` : "",
+          item.position ? `Position: ${item.position}` : "",
           item.status ? `Status: ${item.status}` : "",
         ]
           .filter(Boolean)
@@ -222,6 +233,12 @@ export const generateStudentAchievementsPdf = async ({
           drawSectionLabel("Certificate file");
           drawMutedText(item.certificateUrl || item.certificateKey || "File unavailable");
         }
+      }
+
+      if (item.certificateUrl) {
+        doc.moveDown(0.35);
+        drawSectionLabel("Certificate link");
+        drawMutedText(item.certificateUrl);
       }
     };
 

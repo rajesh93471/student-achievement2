@@ -1,66 +1,73 @@
 "use client";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { UniversityWordmark } from "@/components/layout/university-wordmark";
 
 const stats = [
-  { value: "3 Roles", label: "Students, Admins, Parents", sub: "role-based access" },
-  { value: "Live", label: "AI Assistant", sub: "answers with real data" },
-  { value: "Structured", label: "Achievements", sub: "year, semester, activity" },
-  { value: "Secure", label: "Document Vault", sub: "verified uploads" },
+  { value: "3 Roles", label: "Student, Admin, Parent", sub: "role-based access and dashboards" },
+  { value: "1 Portal", label: "Profiles and Documents", sub: "single source of student records" },
+  { value: "Track", label: "Achievements & Approvals", sub: "structured evidence by year and type" },
+  { value: "Export", label: "Reports and Analytics", sub: "accreditation-ready summaries" },
 ];
 
 const features = [
   {
-    icon: "PM",
-    accent: "#1e3a8a",
-    title: "Student Profile Management",
-    body: "Centralize personal, registration, contact, admission category, and academic program details with admin-controlled updates.",
+    icon: "SP",
+    accent: "text-brand-700 bg-brand-50 border-brand-200",
+    title: "Student Profile Records",
+    body: "Maintain registration, department, program, semester, phone, admission category, and graduation details in one verified profile.",
   },
   {
-    icon: "DR",
-    accent: "#2563eb",
-    title: "Official Document Repository",
-    body: "Secure storage for mark memos, Aadhaar, PAN, voter ID, APAAR/ABC ID, and verification documents.",
-  },
-  {
-    icon: "AT",
-    accent: "#0f766e",
-    title: "Achievement Repository",
-    body: "Track hackathons, internships, publications, competitions, cultural, sports, workshops, and seminars.",
+    icon: "DV",
+    accent: "text-brand-600 bg-brand-50 border-brand-200",
+    title: "Document Verification Vault",
+    body: "Store mark sheets, IDs, supporting documents, and uploaded proofs with organized access for students and administrators.",
   },
   {
     icon: "AR",
-    accent: "#f59e0b",
-    title: "Analytics & AI Insights",
-    body: "Department summaries, top achievers, and AI explanations for leadership reviews and accreditation.",
+    accent: "text-teal-700 bg-teal-50 border-teal-200",
+    title: "Achievement Repository",
+    body: "Capture internships, hackathons, workshops, sports, cultural events, publications, and competitions with clear classification.",
+  },
+  {
+    icon: "RP",
+    accent: "text-accent-600 bg-accent-50 border-accent-200",
+    title: "Analytics and Reports",
+    body: "Give admins quick views of top achievers, department activity, pending approvals, and downloadable evidence for reviews.",
   },
 ];
 
 const workflows = [
   {
     step: "01",
-    accent: "#f59e0b",
-    title: "Profile Onboarding",
-    body: "Capture admission category, registration, and academic program details in a structured flow.",
+    accent: "bg-accent-500",
+    title: "Profile Setup",
+    body: "Students create their academic profile with registration number, branch, year, semester, and contact details.",
   },
   {
     step: "02",
-    accent: "#3b82f6",
-    title: "Documents and Achievements",
-    body: "Upload official documents and achievements with year, semester, and activity type tagging.",
+    accent: "bg-brand-500",
+    title: "Upload Proof and Achievements",
+    body: "Students add verified documents and achievement entries with category, year, semester, and supporting files.",
   },
   {
     step: "03",
-    accent: "#10b981",
-    title: "Admin Access and Reports",
-    body: "Search by registration number, verify records, and export evidence for accreditation.",
+    accent: "bg-emerald-500",
+    title: "Review, Approve, and Report",
+    body: "Admins review submissions, parents track progress, and the institution generates reports for analysis and accreditation.",
   },
 ];
 
 const students = [
-  { name: "Priya Sharma",  dept: "Computer Science - 3rd Year", badge: "Approved", badgeColor: "#0f766e", bg: "#1e3a8a" },
-  { name: "Arjun Reddy",   dept: "Electronics - 2nd Year",      badge: "Verified", badgeColor: "#2563eb", bg: "#0f172a" },
-  { name: "Nisha Patel",   dept: "Civil Engineering - 4th Year", badge: "Pending", badgeColor: "#f59e0b", bg: "#b45309" },
+  { name: "Likitha R.", dept: "CSE - 3rd Year", badge: "4 Docs Verified", badgeColor: "text-teal-700 bg-teal-50 border-teal-200", bg: "bg-brand-900" },
+  { name: "Sai Charan", dept: "ECE - 2nd Year", badge: "2 Achievements Added", badgeColor: "text-brand-600 bg-brand-50 border-brand-200", bg: "bg-slate-900" },
+  { name: "Harshini M.", dept: "MBA - 1st Year", badge: "Approval Pending", badgeColor: "text-accent-600 bg-accent-50 border-accent-200", bg: "bg-accent-700" },
+];
+
+const heroBenefits = [
+  { title: "Role-Based Access", body: "Separate student, admin, and parent views with focused actions." },
+  { title: "Document Verification", body: "Collect, review, and maintain proofs in one structured portal." },
+  { title: "Reports and Analytics", body: "Track approvals, achievements, and institutional summaries quickly." },
 ];
 
 export default function HomePage() {
@@ -73,976 +80,293 @@ export default function HomePage() {
   }, []);
 
   return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap');
-
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        :root {
-          --ink:          #0f172a;
-          --ink-dim:      #334155;
-          --slate:        #64748b;
-          --border:       #e2e8f0;
-          --border-soft:  #edf2f7;
-          --border-hard:  #cbd5e1;
-          --surface:      #ffffff;
-          --surface-low:  #f8fafc;
-          --bg:           #f8fafc;
-          --amber:        #1e3a8a;
-          --amber-dim:    rgba(30,58,138,0.08);
-          --amber-border: rgba(30,58,138,0.2);
-          --gold:         #f59e0b;
-          --font-display: 'Poppins', 'Inter', sans-serif;
-          --font-body:    'Inter', sans-serif;
-        }
-
-        html { scroll-behavior: smooth; }
-
-        body {
-          font-family: var(--font-body);
-          background: var(--bg);
-          color: var(--ink);
-          line-height: 1.6;
-          -webkit-font-smoothing: antialiased;
-          background-image:
-            radial-gradient(ellipse at 20% 0%,  rgba(30,58,138,0.08) 0%, transparent 55%),
-            radial-gradient(ellipse at 80% 10%, rgba(37,99,235,0.06) 0%, transparent 50%),
-            radial-gradient(ellipse at 50% 95%, rgba(245,158,11,0.05) 0%, transparent 50%);
-          background-attachment: fixed;
-        }
-
-        /* ── SCROLLBAR ── */
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-        /* ── NAV ── */
-        .lp-nav {
-          position: fixed;
-          top: 0; left: 0; right: 0;
-          z-index: 100;
-          padding: 0 48px;
-          height: 68px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          transition: background 0.3s, border-color 0.3s;
-          border-bottom: 1px solid transparent;
-        }
-        .lp-nav.scrolled {
-          background: rgba(248, 250, 252, 0.95);
-          backdrop-filter: blur(18px);
-          -webkit-backdrop-filter: blur(18px);
-          border-color: var(--border);
-          box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
-        }
-
-        .lp-brand {
-          display: flex; align-items: center; gap: 14px;
-          text-decoration: none;
-        }
-        .lp-logo {
-          width: 44px; height: 44px;
-          background: #fff;
-          border-radius: 12px;
-          display: flex; align-items: center; justify-content: center;
-          border: 1px solid var(--border);
-          box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
-        }
-        .lp-logo-img {
-          width: 30px; height: 30px; object-fit: contain;
-        }
-        .lp-brand-name {
-          font-family: var(--font-display);
-          font-size: 18px;
-          font-weight: 400;
-          color: var(--ink);
-          line-height: 1.1;
-        }
-        .lp-brand-sub {
-          font-size: 10px;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
-          color: var(--slate);
-        }
-
-        .lp-nav-links {
-          display: flex; align-items: center; gap: 36px; list-style: none;
-        }
-        .lp-nav-links a {
-          font-family: var(--font-body);
-          font-size: 13px;
-          font-weight: 500;
-          letter-spacing: 0.02em;
-          color: var(--slate);
-          text-decoration: none;
-          transition: color 0.2s;
-        }
-        .lp-nav-links a:hover { color: var(--ink); }
-
-        .lp-nav-actions { display: flex; align-items: center; gap: 10px; }
-
-        .lp-btn {
-          display: inline-flex; align-items: center; gap: 6px;
-          font-family: var(--font-body);
-          font-size: 13px;
-          font-weight: 600;
-          letter-spacing: 0.02em;
-          border-radius: 8px;
-          padding: 9px 20px;
-          border: none;
-          cursor: pointer;
-          text-decoration: none;
-          transition: all 0.2s;
-          white-space: nowrap;
-        }
-        .lp-btn-ghost {
-          background: #fff;
-          color: var(--slate);
-          border: 1px solid var(--border-hard);
-        }
-        .lp-btn-ghost:hover { border-color: #94a3b8; color: var(--ink); }
-
-        .lp-btn-primary {
-          background: var(--amber);
-          color: #fff;
-          font-weight: 600;
-        }
-        .lp-btn-primary:hover {
-          background: #1d4ed8;
-          transform: translateY(-1px);
-          box-shadow: 0 10px 28px rgba(37,99,235,0.22);
-        }
-        .lp-btn-lg { padding: 13px 30px; font-size: 13px; border-radius: 10px; }
-        .lp-btn-outline-lg {
-          background: #fff; color: var(--slate);
-          border: 1px solid var(--border-hard); font-size: 13px;
-          padding: 12px 28px; border-radius: 10px;
-          font-family: var(--font-body);
-          display: inline-flex; align-items: center;
-          cursor: pointer; text-decoration: none;
-          transition: border-color 0.2s, color 0.2s;
-        }
-        .lp-btn-outline-lg:hover { border-color: #94a3b8; color: var(--ink); }
-
-        /* ── LAYOUT ── */
-        .lp-page { padding-top: 68px; }
-        .lp-container { max-width: 1160px; margin: 0 auto; padding: 0 40px; }
-
-        /* ── HERO ── */
-        .lp-hero {
-          padding: 104px 0 88px;
-          position: relative;
-          overflow: hidden;
-        }
-
-        .lp-hero-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 72px;
-          align-items: center;
-        }
-
-        .lp-eyebrow {
-          display: inline-flex; align-items: center; gap: 8px;
-          background: var(--amber-dim);
-          border: 1px solid var(--amber-border);
-          border-radius: 100px;
-          padding: 6px 14px 6px 8px;
-          font-size: 11px;
-          font-family: var(--font-body);
-          letter-spacing: 0.07em;
-          color: var(--amber);
-          margin-bottom: 28px;
-        }
-        .lp-eyebrow-dot {
-          width: 5px; height: 5px;
-          background: var(--amber);
-          border-radius: 50%;
-        }
-
-        .lp-hero h1 {
-          font-family: var(--font-display);
-          font-size: 56px;
-          line-height: 1.07;
-          letter-spacing: -0.02em;
-          color: var(--ink);
-          margin-bottom: 24px;
-        }
-        .lp-hero h1 em {
-          font-style: italic;
-          color: var(--amber);
-        }
-
-        .lp-hero-desc {
-          font-family: var(--font-body);
-          font-size: 15px;
-          color: var(--slate);
-          line-height: 1.8;
-          max-width: 460px;
-          margin-bottom: 28px;
-          letter-spacing: 0.01em;
-        }
-
-        .lp-hero-actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
-
-        .lp-trust {
-          display: flex; align-items: center; gap: 10px;
-          margin-top: 24px;
-          font-family: var(--font-body);
-          font-size: 12px;
-          color: var(--slate);
-          letter-spacing: 0.02em;
-        }
-        .lp-trust-dot { width: 3px; height: 3px; background: #cbd5e1; border-radius: 50%; }
-        .lp-trust-item { color: var(--slate); }
-
-        /* ── HERO VISUAL ── */
-        .lp-hero-visual { position: relative; }
-
-        .lp-hero-photo {
-          width: 100%;
-          height: 260px;
-          border-radius: 18px;
-          object-fit: cover;
-          border: 1px solid var(--border);
-          box-shadow: 0 20px 40px rgba(15,23,42,0.12);
-          margin-bottom: 18px;
-        }
-        .lp-hero-photo-grid {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 12px;
-          margin-top: 14px;
-        }
-        .lp-hero-photo-sm {
-          width: 100%;
-          height: 140px;
-          border-radius: 14px;
-          object-fit: cover;
-          border: 1px solid var(--border);
-          box-shadow: 0 14px 28px rgba(15,23,42,0.1);
-        }
-        .lp-hero-card {
-          background: var(--surface);
-          border: 1px solid var(--border);
-          border-radius: 20px;
-          padding: 26px;
-          box-shadow: 0 32px 60px rgba(15, 23, 42, 0.12);
-        }
-
-        .lp-card-header {
-          display: flex; align-items: center; justify-content: space-between;
-          margin-bottom: 18px;
-        }
-        .lp-card-label {
-          font-family: var(--font-body);
-          font-size: 11px; letter-spacing: 0.12em;
-          text-transform: uppercase; color: var(--slate);
-        }
-        .lp-card-live {
-          display: flex; align-items: center; gap: 6px;
-          font-family: var(--font-body);
-          font-size: 11px; color: #10b981;
-        }
-        .lp-live-dot {
-          width: 5px; height: 5px;
-          background: #10b981; border-radius: 50%;
-          box-shadow: 0 0 6px #10b981;
-        }
-
-        .lp-student-row {
-          display: flex; align-items: center; gap: 12px;
-          padding: 11px 12px;
-          border-radius: 10px;
-          background: var(--surface-low);
-          margin-bottom: 8px;
-          border: 1px solid var(--border);
-          transition: border-color 0.2s;
-        }
-        .lp-student-row:hover { border-color: var(--border); }
-
-        .lp-avatar {
-          width: 34px; height: 34px; border-radius: 8px;
-          display: flex; align-items: center; justify-content: center;
-          font-family: var(--font-display);
-          font-size: 16px; color: white; flex-shrink: 0;
-        }
-        .lp-student-name {
-          font-family: var(--font-body);
-          font-size: 13px; color: var(--ink); font-weight: 600;
-        }
-        .lp-student-dept {
-          font-family: var(--font-body);
-          font-size: 12px; color: var(--slate); margin-top: 1px;
-        }
-        .lp-badge {
-          font-family: var(--font-body);
-          font-size: 11px; letter-spacing: 0.04em;
-          padding: 3px 10px;
-          border-radius: 5px;
-          font-weight: 500;
-          flex-shrink: 0;
-        }
-
-        .lp-mini-grid {
-          display: grid; grid-template-columns: 1fr 1fr;
-          gap: 10px; margin-top: 10px;
-        }
-        .lp-mini-card {
-          background: var(--surface-low);
-          border: 1px solid var(--border);
-          border-radius: 10px; padding: 14px 16px;
-        }
-        .lp-mini-value {
-          font-family: var(--font-display);
-          font-size: 26px; color: var(--amber);
-          line-height: 1;
-        }
-        .lp-mini-label {
-          font-family: var(--font-body);
-          font-size: 11px; color: var(--slate); margin-top: 4px;
-          letter-spacing: 0.05em;
-        }
-
-        /* Float card */
-        .lp-float {
-          position: absolute;
-          bottom: -18px; right: -20px;
-          background: var(--surface);
-          border: 1px solid var(--border);
-          border-radius: 12px;
-          padding: 12px 16px;
-          box-shadow: 0 16px 36px rgba(15, 23, 42, 0.12);
-          display: flex; align-items: center; gap: 10px;
-          white-space: nowrap;
-        }
-        .lp-float-icon {
-          width: 30px; height: 30px;
-          background: rgba(16,185,129,0.12);
-          border: 1px solid rgba(16,185,129,0.25);
-          border-radius: 7px;
-          display: flex; align-items: center; justify-content: center;
-          font-size: 13px; color: #10b981;
-        }
-        .lp-float-main {
-          font-family: var(--font-body);
-          font-size: 12px; color: var(--ink); font-weight: 600;
-        }
-        .lp-float-sub {
-          font-family: var(--font-body);
-          font-size: 11px; color: var(--slate); margin-top: 1px; letter-spacing: 0.02em;
-        }
-
-        /* ── STATS BAND ── */
-        .lp-stats {
-          border-top: 1px solid var(--border);
-          border-bottom: 1px solid var(--border);
-          padding: 52px 0;
-          background: var(--surface-low);
-        }
-        .lp-stats-grid {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-        }
-        .lp-stat {
-          padding: 0 36px;
-          border-right: 1px solid var(--border);
-          text-align: center;
-        }
-        .lp-stat:first-child { padding-left: 0; text-align: left; border-left: none; }
-        .lp-stat:last-child  { padding-right: 0; text-align: right; border-right: none; }
-
-        .lp-stat-value {
-          font-family: var(--font-display);
-          font-size: 44px; color: var(--amber); line-height: 1;
-        }
-        .lp-stat-label {
-          font-family: var(--font-body);
-          font-size: 13px; color: var(--ink);
-          margin-top: 8px; letter-spacing: 0.02em;
-          font-weight: 600;
-        }
-        .lp-stat-sub {
-          font-family: var(--font-body);
-          font-size: 12px; color: var(--slate); margin-top: 2px;
-          letter-spacing: 0.02em;
-        }
-
-        /* ── SECTION SHARED ── */
-        .lp-section { padding: 104px 0; }
-        .lp-section-eyebrow {
-          display: inline-flex; align-items: center; gap: 10px;
-          font-family: var(--font-body);
-          font-size: 11px; font-weight: 600;
-          text-transform: uppercase; letter-spacing: 0.14em;
-          color: var(--amber); margin-bottom: 18px;
-        }
-        .lp-section-eyebrow::before {
-          content: '';
-          display: block; width: 18px; height: 1.5px;
-          background: var(--amber);
-        }
-        .lp-section-title {
-          font-family: var(--font-display);
-          font-size: 44px; line-height: 1.1;
-          letter-spacing: -0.02em; color: var(--ink);
-          max-width: 520px;
-        }
-        .lp-section-title em { font-style: italic; color: var(--amber); }
-        .lp-section-body {
-          font-family: var(--font-body);
-          font-size: 15px; color: var(--slate);
-          line-height: 1.8; max-width: 480px;
-          margin-top: 16px; letter-spacing: 0.01em;
-        }
-
-        /* ── FEATURES ── */
-        .lp-features-grid {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 16px; margin-top: 52px;
-        }
-        .lp-feature-card {
-          background: var(--surface);
-          border: 1px solid var(--border);
-          border-radius: 16px; padding: 28px;
-          transition: transform 0.22s, box-shadow 0.22s, border-color 0.22s;
-          animation: lp-fadeUp 0.4s ease both;
-        }
-        .lp-feature-card:hover {
-          transform: translateY(-3px);
-          box-shadow: 0 24px 60px rgba(0,0,0,0.5);
-          border-color: var(--border-hard);
-        }
-        .lp-feature-icon {
-          width: 42px; height: 42px;
-          border-radius: 10px;
-          display: flex; align-items: center; justify-content: center;
-          font-size: 20px; margin-bottom: 18px;
-        }
-        .lp-feature-title {
-          font-family: var(--font-display);
-          font-size: 18px; color: var(--ink); font-weight: 600;
-          margin-bottom: 10px;
-        }
-        .lp-feature-body {
-          font-family: var(--font-body);
-          font-size: 14px; color: var(--slate);
-          line-height: 1.75; letter-spacing: 0.01em;
-        }
-
-        /* ── BENTO ── */
-        .lp-bento-section { padding: 0 0 104px; }
-        .lp-bento-header { text-align: center; margin-bottom: 56px; }
-        .lp-bento-header .lp-section-title { max-width: none; }
-        .lp-bento-header .lp-section-body { max-width: 480px; margin: 16px auto 0; text-align: center; }
-
-        .lp-bento-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 16px;
-        }
-        .lp-bento-cell {
-          background: var(--surface);
-          border: 1px solid var(--border);
-          border-radius: 16px; padding: 30px;
-          position: relative; overflow: hidden;
-          transition: transform 0.22s, box-shadow 0.22s, border-color 0.22s;
-        }
-        .lp-bento-cell:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 20px 50px rgba(0,0,0,0.4);
-          border-color: var(--border-hard);
-        }
-        .lp-bento-cell-wide {
-          grid-column: span 2;
-          background: var(--surface-low);
-        }
-        .lp-bento-step {
-          font-family: var(--font-body);
-          font-size: 11px; letter-spacing: 0.15em;
-          text-transform: uppercase; color: var(--slate);
-          margin-bottom: 14px;
-        }
-        .lp-bento-cell-wide .lp-bento-step { color: var(--slate); }
-        .lp-bento-title {
-          font-family: var(--font-display);
-          font-size: 20px; color: var(--ink); font-weight: 600; margin-bottom: 10px;
-        }
-        .lp-bento-body {
-          font-family: var(--font-body);
-          font-size: 14px; color: var(--slate);
-          line-height: 1.75; letter-spacing: 0.01em;
-        }
-        .lp-bento-ghost { display: none; }
-
-        /* Mini bar chart */
-        .lp-bars {
-          display: flex; align-items: flex-end; gap: 5px;
-          height: 44px; margin-top: 22px;
-        }
-        .lp-bar {
-          flex: 1; border-radius: 3px 3px 0 0;
-          background: #dbeafe;
-          transition: background 0.2s;
-        }
-        .lp-bar:hover { background: #bfdbfe; }
-        .lp-bar.lit { background: var(--amber); }
-
-        /* ── ABOUT ── */
-        .lp-about-grid {
-          display: grid; grid-template-columns: 1fr 1fr;
-          gap: 80px; align-items: center;
-        }
-        .lp-pills {
-          display: flex; flex-wrap: wrap; gap: 8px; margin: 28px 0;
-        }
-        .lp-pill {
-          display: flex; align-items: center; gap: 7px;
-          background: var(--surface);
-          border: 1px solid var(--border);
-          border-radius: 100px; padding: 7px 14px;
-          font-family: var(--font-body);
-          font-size: 12px; color: var(--slate);
-          letter-spacing: 0.02em;
-          transition: border-color 0.18s, color 0.18s;
-        }
-        .lp-pill:hover { border-color: #94a3b8; color: var(--ink); }
-        .lp-pill-dot { width: 5px; height: 5px; background: var(--amber); border-radius: 50%; }
-
-        .lp-quote {
-          background: var(--surface);
-          border: 1px solid var(--border);
-          border-radius: 14px; padding: 28px; margin-top: 24px;
-          border-left: 3px solid var(--amber);
-        }
-        .lp-quote-text {
-          font-family: var(--font-display);
-          font-size: 18px; font-style: italic;
-          color: var(--ink); line-height: 1.55; margin-bottom: 14px;
-        }
-        .lp-quote-source {
-          font-family: var(--font-body);
-          font-size: 11px; letter-spacing: 0.1em;
-          text-transform: uppercase; color: var(--slate);
-        }
-
-        .lp-about-tiles {
-          display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
-        }
-        .lp-about-tile {
-          background: var(--surface);
-          border: 1px solid var(--border);
-          border-radius: 14px; padding: 22px;
-          transition: border-color 0.2s;
-        }
-        .lp-about-tile:hover { border-color: var(--border-hard); }
-        .lp-about-tile-wide {
-          grid-column: span 2;
-          background: var(--surface-low);
-          border-left: 3px solid var(--amber);
-        }
-        .lp-about-big {
-          font-family: var(--font-display);
-          font-size: 42px; color: var(--amber); line-height: 1; margin-bottom: 6px;
-        }
-        .lp-about-tile-title {
-          font-family: var(--font-body);
-          font-size: 12px; color: var(--ink);
-          letter-spacing: 0.04em; font-weight: 600;
-        }
-        .lp-about-tile-body {
-          font-family: var(--font-body);
-          font-size: 12px; color: var(--slate);
-          margin-top: 5px; line-height: 1.6; letter-spacing: 0.02em;
-        }
-        .lp-about-tile-icon { font-size: 20px; margin-bottom: 10px; }
-
-        /* ── CTA ── */
-        .lp-cta { padding: 0 0 104px; }
-        .lp-cta-inner {
-          background: var(--surface);
-          border: 1px solid var(--border);
-          border-radius: 20px; padding: 72px;
-          display: grid; grid-template-columns: 1fr auto;
-          gap: 48px; align-items: center;
-          position: relative; overflow: hidden;
-        }
-        .lp-cta-inner::before {
-          content: '';
-          position: absolute; top: -80px; right: -80px;
-          width: 320px; height: 320px;
-          background: radial-gradient(circle, rgba(245,158,11,0.06) 0%, transparent 70%);
-          pointer-events: none;
-        }
-        .lp-cta-eyebrow {
-          font-family: var(--font-body);
-          font-size: 11px; letter-spacing: 0.14em;
-          text-transform: uppercase; color: var(--amber); margin-bottom: 14px;
-        }
-        .lp-cta-title {
-          font-family: var(--font-display);
-          font-size: 40px; color: var(--ink); line-height: 1.1; max-width: 460px;
-        }
-        .lp-cta-body {
-          font-family: var(--font-body);
-          font-size: 15px; color: var(--slate);
-          margin-top: 12px; line-height: 1.8; letter-spacing: 0.01em;
-        }
-        .lp-cta-actions { display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; }
-        .lp-btn-amber-lg {
-          background: var(--amber); color: #fff;
-          font-family: var(--font-body); font-size: 14px; font-weight: 600;
-          letter-spacing: 0.02em; padding: 14px 30px; border-radius: 10px;
-          border: none; cursor: pointer; text-decoration: none;
-          display: inline-flex; align-items: center; justify-content: center;
-          transition: background 0.18s, transform 0.15s, box-shadow 0.18s;
-          white-space: nowrap;
-        }
-        .lp-btn-amber-lg:hover {
-          background: #1d4ed8; transform: translateY(-1px);
-          box-shadow: 0 10px 28px rgba(37,99,235,0.22);
-        }
-        .lp-btn-ghost-lg {
-          background: #fff; color: var(--slate);
-          border: 1px solid var(--border-hard); font-family: var(--font-body);
-          font-size: 14px; padding: 13px 28px; border-radius: 10px;
-          cursor: pointer; text-decoration: none;
-          display: inline-flex; align-items: center; justify-content: center;
-          transition: border-color 0.18s, color 0.18s; white-space: nowrap;
-        }
-        .lp-btn-ghost-lg:hover { border-color: #94a3b8; color: var(--ink); }
-
-        /* ── FOOTER ── */
-        .lp-footer {
-          border-top: 1px solid var(--border);
-          padding: 28px 0;
-          display: flex; align-items: center; justify-content: space-between;
-        }
-        .lp-footer-brand {
-          font-family: var(--font-display);
-          font-size: 15px; color: var(--ink);
-        }
-        .lp-footer-copy {
-          font-family: var(--font-body);
-          font-size: 12px; color: var(--slate); letter-spacing: 0.02em;
-        }
-
-        /* ── ANIMATIONS ── */
-        @keyframes lp-fadeUp {
-          from { opacity: 0; transform: translateY(14px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-
-        /* ── RESPONSIVE ── */
-        @media (max-width: 1024px) {
-          .lp-hero-grid, .lp-about-grid { grid-template-columns: 1fr; }
-          .lp-float { display: none; }
-          .lp-stats-grid { grid-template-columns: repeat(2, 1fr); }
-          .lp-stat { padding: 18px; border: none; border-bottom: 1px solid var(--border); text-align: center; }
-          .lp-stat:first-child, .lp-stat:last-child { text-align: center; padding-left: 18px; padding-right: 18px; }
-          .lp-bento-grid { grid-template-columns: 1fr; }
-          .lp-bento-cell-wide { grid-column: span 1; }
-          .lp-cta-inner { grid-template-columns: 1fr; padding: 44px; }
-          .lp-cta-actions { flex-direction: row; }
-          .lp-nav-links { display: none; }
-          .lp-container { padding: 0 20px; }
-          .lp-hero { padding: 72px 0 56px; }
-          .lp-hero h1 { font-size: 40px; }
-          .lp-features-grid { grid-template-columns: 1fr; }
-          .lp-about-tiles { grid-template-columns: 1fr; }
-          .lp-about-tile-wide { grid-column: span 1; }
-        }
-      `}</style>
-
-      <div className="lp-page">
-
-        {/* ── NAV ── */}
-        <nav className={`lp-nav${scrolled ? " scrolled" : ""}`}>
-          <a href="#" className="lp-brand">
-            <div className="lp-logo">
-              <img className="lp-logo-img" src="/brand/university-logo.svg" alt="University logo" />
+    <div className="min-h-screen bg-surface-50 text-ink bg-grad-radial font-sans">
+      
+      {/* ─── NAVBAR ─── */}
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${scrolled ? 'bg-white/80 backdrop-blur-lg border-surface-200 shadow-sm py-3' : 'bg-transparent border-transparent py-5'}`}>
+        <div className="container mx-auto px-4 md:px-8 max-w-7xl flex items-center justify-between">
+          <a href="#" className="flex items-center gap-4 group">
+            <div className="w-48 md:w-[260px] bg-white rounded-xl border border-surface-200 shadow-sm p-2 flex items-center justify-center transition-transform group-hover:scale-[1.02]">
+              <UniversityWordmark className="w-full h-full object-contain" />
             </div>
-            <div>
-              <div className="lp-brand-name">UniPortal</div>
-              <div className="lp-brand-sub">Achievement System</div>
+            <div className="hidden lg:block">
+              <h1 className="font-display text-xl font-bold text-ink leading-tight">Student Achievement System</h1>
+              <p className="text-xs uppercase tracking-widest text-slate-500 font-semibold mt-0.5">Vignan&apos;s Deemed to be University</p>
             </div>
           </a>
-          <ul className="lp-nav-links">
+          <ul className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
             {["Home", "Features", "Workflows", "About"].map((item) => (
               <li key={item}>
-                <a href={`#${item.toLowerCase()}`}>{item}</a>
+                <a href={`#${item.toLowerCase()}`} className="hover:text-brand-600 transition-colors">{item}</a>
               </li>
             ))}
           </ul>
-          <div className="lp-nav-actions">
-            <Link href="/signin" className="lp-btn lp-btn-ghost">Sign in</Link>
-            <Link href="/signup" className="lp-btn lp-btn-primary">Get started -&gt;</Link>
-          </div>
-        </nav>
-
-        {/* ── HERO ── */}
-        <section id="home" className="lp-hero">
-          <div className="lp-container">
-            <div className="lp-hero-grid">
-
-              {/* Left copy */}
-              <div>
-                <div className="lp-eyebrow">
-                  <span className="lp-eyebrow-dot" />
-                  NAAC &amp; Accreditation Ready
-                </div>
-                <h1>
-                  Student achievement<br />
-                  and <em>profile</em><br />
-                  management.
-                </h1>
-                <p className="lp-hero-desc">
-                  A centralized university portal to manage student profiles, documents, achievements, and approvals with AI that answers using real system data.
-                </p>
-                <div className="lp-trust">
-                  <span className="lp-trust-item">Role-based access</span>
-                  <span className="lp-trust-dot" />
-                  <span className="lp-trust-item">Secure document vault</span>
-                  <span className="lp-trust-dot" />
-                  <span className="lp-trust-item">AI insights</span>
-                </div>
-              </div>
-
-              {/* Right visual card */}
-              <div className="lp-hero-visual">
-                <div className="lp-hero-card">
-                  <div className="lp-card-header">
-                    <span className="lp-card-label">Active students</span>
-                    <span className="lp-card-live">
-                      <span className="lp-live-dot" /> System live
-                    </span>
-                  </div>
-
-                  {students.map((s) => (
-                    <div className="lp-student-row" key={s.name}>
-                      <div className="lp-avatar" style={{ background: s.bg }}>{s.name[0]}</div>
-                      <div style={{ flex: 1 }}>
-                        <div className="lp-student-name">{s.name}</div>
-                        <div className="lp-student-dept">{s.dept}</div>
-                      </div>
-                      <span className="lp-badge" style={{
-                        background: `${s.badgeColor}15`,
-                        color: s.badgeColor,
-                        border: `1px solid ${s.badgeColor}30`,
-                      }}>
-                        {s.badge}
-                      </span>
-                    </div>
-                  ))}
-
-                  <div className="lp-mini-grid">
-                    <div className="lp-mini-card">
-                      <div className="lp-mini-value">847</div>
-                      <div className="lp-mini-label">Students enrolled</div>
-                    </div>
-                    <div className="lp-mini-card">
-                      <div className="lp-mini-value">12.4k</div>
-                      <div className="lp-mini-label">Documents stored</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="lp-float">
-                  <div className="lp-float-icon">✓</div>
-                  <div>
-                    <div className="lp-float-main">Request sent</div>
-                    <div className="lp-float-sub">Admin notified just now</div>
-                  </div>
-                </div>
-
-                <div className="lp-hero-photo-grid">
-                  <img
-                    className="lp-hero-photo-sm"
-                    src="https://images.unsplash.com/photo-1498243691581-b145c3f54a5a?q=80&w=1200&auto=format&fit=crop"
-                    alt="Students collaborating in campus library"
-                  />
-                  <img
-                    className="lp-hero-photo-sm"
-                    src="https://images.unsplash.com/photo-1523580846011-d3a5bc25702b?q=80&w=1200&auto=format&fit=crop"
-                    alt="Graduation ceremony"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── STATS ── */}
-        <div className="lp-stats">
-          <div className="lp-container">
-            <div className="lp-stats-grid">
-              {stats.map((s) => (
-                <div className="lp-stat" key={s.value}>
-                  <div className="lp-stat-value">{s.value}</div>
-                  <div className="lp-stat-label">{s.label}</div>
-                  <div className="lp-stat-sub">{s.sub}</div>
-                </div>
-              ))}
-            </div>
+          <div className="flex items-center gap-3">
+            <Link href="/signin" className="hidden sm:inline-flex items-center justify-center px-4 py-2.5 text-sm font-semibold text-slate-600 bg-white border border-surface-300 rounded-lg hover:bg-surface-50 hover:text-ink transition-colors">Sign in</Link>
+            <Link href="/signup" className="inline-flex items-center justify-center px-5 py-2.5 text-sm font-semibold text-white bg-brand-600 rounded-lg shadow-sm hover:bg-brand-700 hover:shadow-md transition-all hover:-translate-y-0.5">Get started &rarr;</Link>
           </div>
         </div>
+      </nav>
 
-        {/* ── FEATURES ── */}
-        <section id="features" className="lp-section">
-          <div className="lp-container">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 40, flexWrap: "wrap" }}>
-              <div>
-                <div className="lp-section-eyebrow">Core capabilities</div>
-                <h2 className="lp-section-title">
-                  Every workflow a<br /><em>modern university</em><br />needs in one place.
-                </h2>
+      {/* ─── HERO ─── */}
+      <section id="home" className="pt-32 pb-20 md:pt-40 md:pb-32 overflow-hidden">
+        <div className="container mx-auto px-4 md:px-8 max-w-7xl">
+          <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-12 lg:gap-20 items-center">
+            
+            {/* Left Copy */}
+            <div className="max-w-2xl animate-fade-up">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent-50 border border-accent-200 text-accent-700 text-sm font-semibold tracking-wide mb-8">
+                <span className="w-2 h-2 rounded-full bg-accent-500 animate-pulse"></span>
+                Vignan Student Records Platform
               </div>
-              <p className="lp-section-body" style={{ paddingTop: 8 }}>
-                From admission to graduation, maintain complete digital records with audit-ready history, verified documents, and structured achievements.
+              <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] tracking-tight text-ink mb-6 text-balance">
+                Manage <em className="not-italic text-brand-600">profiles</em>, documents,<br className="hidden md:block" /> and achievements.
+              </h1>
+              <p className="text-lg md:text-xl text-slate-600 leading-relaxed mb-10 max-w-xl">
+                A centralized portal for Vignan&apos;s Deemed to be University to maintain student records, collect supporting documents, track achievements, and support fast approval workflows from one place.
               </p>
-            </div>
-
-            <div className="lp-features-grid">
-              {features.map((f, i) => (
-                <div className="lp-feature-card" key={f.title} style={{ animationDelay: `${i * 80}ms` }}>
-                  <div className="lp-feature-icon" style={{
-                    background: `${f.accent}12`,
-                    border: `1px solid ${f.accent}25`,
-                    color: f.accent,
-                  }}>
-                    {f.icon}
-                  </div>
-                  <div className="lp-feature-title">{f.title}</div>
-                  <p className="lp-feature-body">{f.body}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── BENTO / WORKFLOWS ── */}
-        <section id="workflows" className="lp-bento-section">
-          <div className="lp-container">
-            <div className="lp-bento-header">
-              <div className="lp-section-eyebrow">Workflows</div>
-              <h2 className="lp-section-title">Designed for how universities actually work.</h2>
-              <p className="lp-section-body">Three core workflows that take students from onboarding to accreditation-ready records.</p>
-            </div>
-
-            <div className="lp-bento-grid">
-              {/* Wide cell */}
-              <div className="lp-bento-cell lp-bento-cell-wide">
-                <div className="lp-bento-step" style={{ color: "#f59e0b44" }}>{workflows[0].step}</div>
-                <div className="lp-bento-title">{workflows[0].title}</div>
-                <p className="lp-bento-body">{workflows[0].body}</p>
-                <div className="lp-bars">
-                  {[60, 45, 80, 55, 90, 70, 85, 75, 95, 65].map((h, i) => (
-                    <div key={i} className={`lp-bar${i === 8 ? " lit" : ""}`} style={{ height: `${h}%` }} />
-                  ))}
-                </div>
-                <div className="lp-bento-ghost">WF</div>
-              </div>
-
-              {/* Narrow cells */}
-              {workflows.slice(1).map((w) => (
-                <div className="lp-bento-cell" key={w.step}>
-                  <div className="lp-bento-step">{w.step}</div>
-                  <div className="lp-bento-title">{w.title}</div>
-                  <p className="lp-bento-body">{w.body}</p>
-                  {/* Accent line */}
-                  <div style={{
-                    position: "absolute", bottom: 0, left: 0, right: 0,
-                    height: 3, background: w.accent, borderRadius: "0 0 16px 16px",
-                    opacity: 0.6,
-                  }} />
-                  <div className="lp-bento-ghost">{w.step === "02" ? "WF" : "OK"}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── ABOUT ── */}
-        <section id="about" className="lp-section" style={{ paddingTop: 0 }}>
-          <div className="lp-container">
-            <div className="lp-about-grid">
-              <div>
-                <div className="lp-section-eyebrow">About the platform</div>
-                <h2 className="lp-section-title">
-                  Built for <em>accreditation</em>, compliance, and student success.
-                </h2>
-                <p className="lp-section-body">
-                  Centralize student documents, achievements, and profile history with tools that let administrators retrieve and verify records instantly.
-                </p>
-                <div className="lp-pills">
-                  {["Verification-ready", "NAAC compliant", "Audit trails", "Exportable evidence", "Role-based access", "Encrypted storage"].map((p) => (
-                    <div className="lp-pill" key={p}>
-                      <span className="lp-pill-dot" />{p}
-                    </div>
-                  ))}
-                </div>
-                <div className="lp-quote">
-                  <div className="lp-quote-text">"We can retrieve any student record in seconds and share verified evidence for accreditation reviews."</div>
-                  <div className="lp-quote-source">Academic Affairs Office - University Portal</div>
-                </div>
-              </div>
-
-              <div className="lp-about-tiles">
-                <div className="lp-about-tile lp-about-tile-wide">
-                  <div className="lp-about-big">98%</div>
-                  <div className="lp-about-tile-title">Profile completion</div>
-                  <div className="lp-about-tile-body">Average within the first week of onboarding for new students.</div>
-                </div>
-                {[
-                { icon: "DOC", title: "Document repository", body: "Secure uploads for Aadhaar, PAN, APAAR, mark sheets, and more." },
-                { icon: "ACH", title: "Achievement insights",  body: "Track approvals, activity types, and department participation." },
-                { icon: "REP", title: "Leadership reports",    body: "Top achievers and department analytics in PDF or Excel." },
-              ].map((t) => (
-                  <div className="lp-about-tile" key={t.title}>
-                    <div className="lp-about-tile-icon">{t.icon}</div>
-                    <div className="lp-about-tile-title">{t.title}</div>
-                    <div className="lp-about-tile-body">{t.body}</div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-4 border-t border-surface-200">
+                {heroBenefits.map((item) => (
+                  <div key={item.title}>
+                    <h3 className="font-display font-semibold text-ink text-lg mb-2">{item.title}</h3>
+                    <p className="text-sm text-slate-500 leading-relaxed">{item.body}</p>
                   </div>
                 ))}
               </div>
             </div>
-          </div>
-        </section>
 
-        {/* ── CTA ── */}
-        <section className="lp-cta">
-          <div className="lp-container">
-            <div className="lp-cta-inner">
-              <div>
-                <div className="lp-cta-eyebrow">Get started today</div>
-                <h2 className="lp-cta-title">Ready to modernize your university operations?</h2>
-                <p className="lp-cta-body">
-                  Launch student onboarding, document verification, and achievement tracking in one secure, accreditation-ready platform.
+            {/* Right Visual */}
+            <div className="relative w-full h-full animate-fade-up" style={{ animationDelay: "200ms" }}>
+              <div className="bg-white border border-surface-200 rounded-3xl p-6 md:p-8 shadow-card relative z-10 w-full hover:shadow-panel transition-shadow duration-500">
+                <div className="flex items-center justify-between mb-6">
+                  <span className="text-xs font-bold uppercase tracking-widest text-slate-400">Portal overview</span>
+                  <span className="flex items-center gap-2 text-xs font-semibold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Portal active
+                  </span>
+                </div>
+                
+                <div className="flex flex-col gap-3">
+                  {students.map((s) => (
+                    <div key={s.name} className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-xl bg-surface-50 border border-surface-200 hover:border-surface-300 transition-colors">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-white font-display font-bold shrink-0 ${s.bg}`}>
+                        {s.name[0]}
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-semibold text-ink">{s.name}</div>
+                        <div className="text-sm text-slate-500">{s.dept}</div>
+                      </div>
+                      <div className={`text-xs font-semibold px-2.5 py-1 rounded-md border shrink-0 inline-flex items-center w-max ${s.badgeColor}`}>
+                        {s.badge}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mt-6">
+                  <div className="p-5 rounded-2xl bg-surface-50 border border-surface-200">
+                    <div className="font-display text-4xl font-bold text-brand-600 mb-2">847</div>
+                    <div className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Student profiles</div>
+                  </div>
+                  <div className="p-5 rounded-2xl bg-surface-50 border border-surface-200">
+                    <div className="font-display text-4xl font-bold text-accent-500 mb-2">12.4k</div>
+                    <div className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Supporting files</div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Decorative background blob */}
+              <div className="absolute -top-10 -right-10 w-72 h-72 bg-brand-400/20 rounded-full blur-[80px] -z-10 mix-blend-multiply"></div>
+              <div className="absolute -bottom-10 -left-10 w-72 h-72 bg-accent-400/20 rounded-full blur-[80px] -z-10 mix-blend-multiply"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── STATS ─── */}
+      <section className="py-16 bg-white border-y border-surface-200">
+        <div className="container mx-auto px-4 md:px-8 max-w-7xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 divide-y md:divide-y-0 md:divide-x divide-surface-200">
+            {stats.map((s, i) => (
+              <div key={s.value} className={`text-center md:px-6 pt-6 md:pt-0 ${i === 0 ? 'md:pl-0' : ''} ${i === stats.length - 1 ? 'md:pr-0' : ''}`}>
+                <div className="font-display text-5xl font-bold text-brand-600 mb-3">{s.value}</div>
+                <div className="font-semibold text-ink text-lg">{s.label}</div>
+                <div className="text-slate-500 text-sm mt-1">{s.sub}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── FEATURES ─── */}
+      <section id="features" className="py-24 md:py-32">
+        <div className="container mx-auto px-4 md:px-8 max-w-7xl">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
+            <div className="max-w-2xl">
+              <div className="flex items-center gap-3 text-brand-600 font-bold uppercase tracking-widest text-sm mb-6">
+                <span className="w-12 h-0.5 bg-brand-600"></span> Core capabilities
+              </div>
+              <h2 className="font-display text-4xl md:text-5xl font-bold text-ink leading-[1.1]">
+                Every record that matters for <em className="not-italic text-brand-600">student progress</em> in one system.
+              </h2>
+            </div>
+            <p className="text-lg text-slate-600 max-w-md">
+              From onboarding to graduation, the platform keeps profile data, approvals, uploaded proofs, and achievement history ready for day-to-day operations.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+            {features.map((f, i) => (
+              <div key={f.title} className="p-8 md:p-10 bg-white rounded-3xl border border-surface-200 shadow-sm hover:shadow-card hover:-translate-y-1 transition-all duration-300" style={{ animationDelay: `${i * 100}ms` }}>
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-display font-bold text-xl mb-6 border ${f.accent}`}>
+                  {f.icon}
+                </div>
+                <h3 className="font-display text-2xl font-bold text-ink mb-3">{f.title}</h3>
+                <p className="text-slate-600 leading-relaxed text-lg">{f.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── WORKFLOWS / BENTO ─── */}
+      <section id="workflows" className="py-24 md:py-32 bg-white border-t border-surface-200">
+        <div className="container mx-auto px-4 md:px-8 max-w-7xl">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <div className="flex items-center justify-center gap-3 text-accent-600 font-bold uppercase tracking-widest text-sm mb-6">
+              <span className="w-8 h-0.5 bg-accent-600"></span> Workflows <span className="w-8 h-0.5 bg-accent-600"></span>
+            </div>
+            <h2 className="font-display text-4xl md:text-5xl font-bold text-ink mb-6">Designed for the actual academic record workflow.</h2>
+            <p className="text-lg text-slate-600">Three connected flows move data from student entry to admin verification and reporting.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Wide Cell */}
+            <div className="md:col-span-2 bg-slate-50 rounded-3xl border border-surface-200 p-8 md:p-12 relative overflow-hidden group hover:border-surface-300 transition-colors">
+              <div className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">{workflows[0].step}</div>
+              <h3 className="font-display text-3xl font-bold text-ink mb-4 relative z-10">{workflows[0].title}</h3>
+              <p className="text-slate-600 text-lg max-w-md relative z-10">{workflows[0].body}</p>
+              
+              {/* Fake Data Bars */}
+              <div className="flex items-end gap-2 h-24 mt-12 relative z-10">
+                {[60, 45, 80, 55, 90, 70, 85, 75, 95, 65].map((h, i) => (
+                  <div key={i} className={`flex-1 rounded-t-sm transition-all duration-500 hover:opacity-80 ${i === 8 ? 'bg-accent-500' : 'bg-brand-200 hover:bg-brand-300'}`} style={{ height: `${h}%` }}></div>
+                ))}
+              </div>
+            </div>
+
+            {/* Narrow Cells */}
+            {workflows.slice(1).map((w, i) => (
+              <div key={w.step} className="bg-white rounded-3xl border border-surface-200 p-8 md:p-10 relative overflow-hidden hover:-translate-y-1 hover:shadow-card transition-all duration-300">
+                <div className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">{w.step}</div>
+                <h3 className="font-display text-2xl font-bold text-ink mb-4 relative z-10">{w.title}</h3>
+                <p className="text-slate-600 leading-relaxed relative z-10">{w.body}</p>
+                <div className={`absolute bottom-0 left-0 right-0 h-1.5 ${w.accent} opacity-80`}></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── ABOUT ─── */}
+      <section id="about" className="py-24 md:py-32">
+        <div className="container mx-auto px-4 md:px-8 max-w-7xl">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+            
+            <div>
+              <div className="flex items-center gap-3 text-brand-600 font-bold uppercase tracking-widest text-sm mb-6">
+                <span className="w-12 h-0.5 bg-brand-600"></span> About the platform
+              </div>
+              <h2 className="font-display text-4xl md:text-5xl font-bold text-ink leading-[1.1] mb-6">
+                Built for <em className="not-italic text-brand-600">institutional visibility</em>, compliance, and student growth.
+              </h2>
+              <p className="text-lg text-slate-600 leading-relaxed mb-8">
+                This project gives Vignan a single place to manage student academic profiles, supporting documents, achievements, approvals, and report-ready evidence.
+              </p>
+              
+              <div className="flex flex-wrap gap-3 mb-10">
+                {["Verification-ready", "NAAC compliant", "Audit trails", "Exportable evidence", "Role-based access", "Encrypted storage"].map((p) => (
+                  <div key={p} className="flex items-center gap-2 px-4 py-2 bg-white border border-surface-200 rounded-full text-sm font-semibold text-slate-600 shadow-sm">
+                    <span className="w-1.5 h-1.5 rounded-full bg-brand-500"></span> {p}
+                  </div>
+                ))}
+              </div>
+
+              <div className="p-6 bg-white border-l-4 border-brand-500 rounded-r-2xl shadow-sm border-y border-surface-200">
+                <p className="font-display text-xl leading-relaxed text-ink italic mb-4">
+                  "The portal brings profiles, documents, achievements, and approvals together so academic teams can act faster with confidence."
+                </p>
+                <p className="text-xs font-bold uppercase tracking-widest text-slate-500">
+                  Academic Affairs Office - Vignan&apos;s Deemed to be University
                 </p>
               </div>
-              <div className="lp-cta-actions">
-                <Link href="/signup" className="lp-btn-amber-lg">Create account -&gt;</Link>
-                <Link href="/signin" className="lp-btn-ghost-lg">Sign in</Link>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="sm:col-span-2 p-8 bg-slate-50 border-l-4 border-accent-500 border-surface-200 rounded-r-2xl shadow-sm">
+                <div className="font-display text-5xl font-bold text-accent-500 mb-4">One View</div>
+                <h4 className="font-bold text-ink text-lg mb-2">Complete student record</h4>
+                <p className="text-slate-600 leading-relaxed">Profiles, uploaded proofs, and achievements are available together for fast verification and reporting.</p>
+              </div>
+              {[
+                { icon: "📄", title: "Document repository", body: "Keep student proofs and official uploads organized for quick retrieval and review." },
+                { icon: "🏆", title: "Achievement tracking",  body: "Monitor competitions, internships, workshops, and academic milestones in a structured format." },
+                { icon: "📊", title: "Admin reporting",    body: "Support reviews with searchable records, approval status, and export-friendly summaries." },
+              ].map((t) => (
+                <div key={t.title} className="p-6 bg-white border border-surface-200 rounded-2xl shadow-sm hover:border-surface-300 transition-colors">
+                  <div className="text-2xl mb-4">{t.icon}</div>
+                  <h4 className="font-bold text-ink mb-2">{t.title}</h4>
+                  <p className="text-slate-600 text-sm leading-relaxed">{t.body}</p>
+                </div>
+              ))}
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* ─── CTA ─── */}
+      <section className="py-24 px-4">
+        <div className="container mx-auto max-w-6xl">
+          <div className="bg-brand-900 rounded-[2.5rem] p-10 md:p-16 lg:p-20 relative overflow-hidden shadow-2xl">
+            {/* Background elements */}
+            <div className="absolute top-0 right-0 w-96 h-96 bg-brand-600 rounded-full blur-[100px] opacity-20 -translate-y-1/2 translate-x-1/2"></div>
+            <div className="absolute bottom-0 left-0 w-96 h-96 bg-accent-500 rounded-full blur-[100px] opacity-20 translate-y-1/2 -translate-x-1/2"></div>
+            
+            <div className="relative z-10 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-10 items-center">
+              <div>
+                <div className="text-accent-400 font-bold uppercase tracking-widest text-sm mb-4">Get started today</div>
+                <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6 max-w-2xl text-balance">
+                  Ready to manage student records in one Vignan platform?
+                </h2>
+                <p className="text-brand-100 text-lg md:text-xl max-w-xl leading-relaxed">
+                  Launch profile onboarding, document uploads, achievement submission, and approval tracking in one connected system.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row md:flex-col gap-4">
+                <Link href="/signup" className="inline-flex items-center justify-center px-8 py-4 text-brand-900 bg-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                  Create account &rarr;
+                </Link>
+                <Link href="/signin" className="inline-flex items-center justify-center px-8 py-4 text-white bg-white/10 hover:bg-white/20 font-bold rounded-xl backdrop-blur-sm transition-all duration-300">
+                  Sign in
+                </Link>
               </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* ── FOOTER ── */}
-        <footer>
-          <div className="lp-container">
-            <div className="lp-footer">
-              <div className="lp-footer-brand">UniPortal - Student Achievement System</div>
-              <div className="lp-footer-copy">© {new Date().getFullYear()} University Portal. All rights reserved.</div>
-            </div>
+      {/* ─── FOOTER ─── */}
+      <footer className="border-t border-surface-200 bg-white py-10">
+        <div className="container mx-auto px-4 md:px-8 max-w-7xl flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="font-display text-lg font-bold text-ink">
+            Vignan&apos;s Student Achievement System
           </div>
-        </footer>
+          <div className="text-slate-500 text-sm font-semibold">
+            &copy; {new Date().getFullYear()} Vignan&apos;s Deemed to be University. All rights reserved.
+          </div>
+        </div>
+      </footer>
 
-      </div>
-    </>
+    </div>
   );
 }

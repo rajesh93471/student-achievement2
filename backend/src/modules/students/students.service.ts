@@ -1,4 +1,4 @@
-import { ForbiddenException, NotFoundException, Injectable } from "@nestjs/common";
+import { ConflictException, ForbiddenException, NotFoundException, Injectable } from "@nestjs/common";
 import { PrismaService } from "../../common/prisma/prisma.service";
 
 @Injectable()
@@ -27,6 +27,46 @@ export class StudentsService {
     ]);
 
     return { student, achievements, documents };
+  }
+
+  async updateMyProfile(user: any, body: any) {
+    const student = await this.prisma.student.findUnique({ where: { userId: user.id } });
+    if (!student) throw new NotFoundException("Student profile not found");
+
+    const nextEmail = typeof body.email === "string" ? body.email.trim().toLowerCase() : undefined;
+    const nextAddress =
+      typeof body.address === "string" ? body.address.trim() : body.address === null ? "" : undefined;
+
+    if (nextEmail) {
+      const existingUser = await this.prisma.user.findFirst({
+        where: {
+          email: nextEmail,
+          NOT: { id: user.id },
+        },
+      });
+      if (existingUser) {
+        throw new ConflictException("Email already exists");
+      }
+    }
+
+    const updatedStudent = await this.prisma.$transaction(async (tx) => {
+      if (nextEmail) {
+        await tx.user.update({
+          where: { id: user.id },
+          data: { email: nextEmail },
+        });
+      }
+
+      return tx.student.update({
+        where: { userId: user.id },
+        data: {
+          ...(nextEmail ? { email: nextEmail } : {}),
+          ...(nextAddress !== undefined ? { address: nextAddress || null } : {}),
+        },
+      });
+    });
+
+    return { student: updatedStudent };
   }
 
   async listStudents(user: any, query: any) {
@@ -80,8 +120,16 @@ export class StudentsService {
   }
 
   async adminUpdateStudent(id: string, body: any) {
-    const student = await this.prisma.student.update({ where: { id }, data: body });
+    const { year, semester, graduationYear, cgpa, ...rest } = body;
+    const updates: any = { ...rest };
+    if (year !== undefined) updates.year = Number(year);
+    if (semester !== undefined) updates.semester = Number(semester);
+    if (graduationYear !== undefined) updates.graduationYear = graduationYear ? Number(graduationYear) : null;
+    if (cgpa !== undefined) updates.cgpa = cgpa ? Number(cgpa) : null;
+
+    const student = await this.prisma.student.update({ where: { id }, data: updates });
     if (!student) throw new NotFoundException("Student not found");
     return { student };
   }
 }
+

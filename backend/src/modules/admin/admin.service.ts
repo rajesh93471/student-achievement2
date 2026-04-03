@@ -15,7 +15,37 @@ const TECHNICAL_CATEGORIES = [
   "academic",
 ];
 
-const NON_TECHNICAL_CATEGORIES = ["sports", "cultural", "club"];
+const NON_TECHNICAL_CATEGORIES = [
+  "sports",
+  "cultural",
+  "club",
+  "leadership",
+  "volunteering",
+  "social-service",
+  "nss",
+  "ncc",
+  "entrepreneurship",
+  "arts",
+  "literary",
+  "public-speaking",
+  "community",
+  "other-non-technical",
+];
+
+const formatAcademicYearLabel = (value?: string | null) => {
+  switch (value) {
+    case "Year 1":
+      return "I";
+    case "Year 2":
+      return "II";
+    case "Year 3":
+      return "III";
+    case "Year 4":
+      return "IV";
+    default:
+      return value || "-";
+  }
+};
 
 @Injectable()
 export class AdminService {
@@ -49,9 +79,9 @@ export class AdminService {
         department: body.department,
         program: body.program,
         admissionCategory: body.admissionCategory,
-        year: body.year,
-        semester: body.semester,
-        graduationYear: body.graduationYear,
+        year: Number(body.year),
+        semester: Number(body.semester),
+        graduationYear: body.graduationYear ? Number(body.graduationYear) : null,
         email: body.email,
         phone: body.phone,
       },
@@ -465,6 +495,7 @@ export class AdminService {
 
     if (report === "student-achievements") {
       const selectedYear = query.year;
+      const selectedAchievementYear = query.achievementYear;
       const selectedGroup = query.group;
       const selectedCategory = query.category;
       const where: any = {};
@@ -482,6 +513,13 @@ export class AdminService {
         where.student = {
           ...(where.student || {}),
           graduationYear: Number(selectedYear),
+        };
+      }
+
+      if (selectedAchievementYear && selectedAchievementYear !== "all") {
+        where.date = {
+          gte: new Date(`${selectedAchievementYear}-01-01T00:00:00.000Z`),
+          lt: new Date(`${Number(selectedAchievementYear) + 1}-01-01T00:00:00.000Z`),
         };
       }
 
@@ -503,12 +541,65 @@ export class AdminService {
       const titleParts = [
         "Student Achievements Report",
         selectedYear && selectedYear !== "all" ? `Graduation Year ${selectedYear}` : "All Graduation Years",
+        selectedAchievementYear && selectedAchievementYear !== "all"
+          ? `Achievement Year ${selectedAchievementYear}`
+          : "All Achievement Years",
         selectedCategory && selectedCategory !== "all"
           ? `Category ${selectedCategory}`
           : selectedGroup
             ? `${selectedGroup} stream`
             : "",
       ].filter(Boolean);
+
+      if (format === "excel") {
+        const rows = achievements.map((item) => ({
+          "Student Name": item.student?.fullName || "Student",
+          "Registration Number": item.student?.studentId || "-",
+          Department: item.student?.department || "-",
+          "Graduation Year":
+            item.student?.graduationYear != null
+              ? String(item.student.graduationYear)
+              : "-",
+          "Achievement Stream": TECHNICAL_CATEGORIES.includes(item.category) ? "Technical" : "Non-technical",
+          Category: item.category || "-",
+          Title: item.title || "-",
+          Description: item.description || "-",
+          "Date of Achievement": item.date ? new Date(item.date).toLocaleDateString("en-CA") : "-",
+          "Academic Year": formatAcademicYearLabel(item.academicYear),
+          Semester: item.semester != null ? String(item.semester) : "-",
+          "Activity Type": item.activityType || "-",
+          "Organized By": item.organizedBy || "-",
+          Position: item.position || "-",
+          Status: item.status || "-",
+          "Certificate Link": item.certificateUrl || "-",
+        }));
+
+        const buffer = await generateExcelReport({
+          sheetName: "Student Achievements",
+          columns: [
+            { header: "Student Name", key: "Student Name", width: 24 },
+            { header: "Registration Number", key: "Registration Number", width: 22 },
+            { header: "Department", key: "Department", width: 18 },
+            { header: "Graduation Year", key: "Graduation Year", width: 16 },
+            { header: "Achievement Stream", key: "Achievement Stream", width: 18 },
+            { header: "Category", key: "Category", width: 18 },
+            { header: "Title", key: "Title", width: 28 },
+            { header: "Description", key: "Description", width: 40 },
+            { header: "Date of Achievement", key: "Date of Achievement", width: 18 },
+            { header: "Academic Year", key: "Academic Year", width: 16 },
+            { header: "Semester", key: "Semester", width: 12 },
+            { header: "Activity Type", key: "Activity Type", width: 18 },
+            { header: "Organized By", key: "Organized By", width: 18 },
+            { header: "Position", key: "Position", width: 18 },
+            { header: "Status", key: "Status", width: 14 },
+            { header: "Certificate Link", key: "Certificate Link", width: 48 },
+          ],
+          rows,
+        });
+        res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        res.setHeader("Content-Disposition", "attachment; filename=student-achievements.xlsx");
+        return res.send(buffer);
+      }
 
       const buffer = await generateStudentAchievementsPdf({
         title: titleParts.join(" - "),
@@ -552,14 +643,26 @@ export class AdminService {
   }
 
   async getMeta() {
-    const [departments, admins, faculty] = await Promise.all([
+    const [departments, admins, faculty, graduationYearsRaw] = await Promise.all([
       this.prisma.department.findMany({ orderBy: { name: "asc" } }),
       this.prisma.user.findMany({ where: { role: "admin" }, select: { name: true, email: true } }),
       this.prisma.user.findMany({
         where: { role: "faculty" },
         select: { name: true, email: true, department: true },
       }),
+      this.prisma.student.findMany({
+        select: { graduationYear: true },
+        distinct: ["graduationYear"],
+      }),
     ]);
-    return { departments, admins, faculty };
+
+    const graduationYears = graduationYearsRaw
+      .map((s) => s.graduationYear)
+      .filter((y) => y !== null)
+      .sort((a, b) => b - a);
+
+    return { departments, admins, faculty, graduationYears };
   }
 }
+
+

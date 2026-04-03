@@ -19,6 +19,7 @@ model User {
   student        Student?
   parentProfile  ParentProfile?
   facultyProfile FacultyProfile?
+  passwordResetOtps PasswordResetOtp[]
   achievementsVerified Achievement[] @relation("AchievementVerifiedBy")
   notifications  Notification[]   @relation("NotificationSender")
   createdAt      DateTime         @default(now())
@@ -87,8 +88,10 @@ model Achievement {
   semester           Int?
   category           String
   activityType       String?
-  certificateUrl     String?
-  certificateKey     String?
+  organizedBy        String?
+  position           String?
+  certificateUrl     String?  @db.Text
+  certificateKey     String?  @db.Text
   status             String   @default("pending")
   feedback           String?
   recommendedForAward Boolean @default(false)
@@ -104,8 +107,8 @@ model Document {
   student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
   title     String
   type      String
-  fileUrl   String
-  fileKey   String
+  fileUrl   String   @db.Text
+  fileKey   String   @db.Text
   mimeType  String?
   size      Int?
   createdAt DateTime @default(now())
@@ -132,4 +135,21 @@ model Department {
   hodName String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model PasswordResetOtp {
+  id                   String   @id @default(cuid())
+  userId               String
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  otpHash              String
+  resetTokenHash       String?
+  resetTokenExpiresAt  DateTime?
+  attempts             Int      @default(0)
+  expiresAt            DateTime
+  verifiedAt           DateTime?
+  consumedAt           DateTime?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([userId, createdAt])
 }

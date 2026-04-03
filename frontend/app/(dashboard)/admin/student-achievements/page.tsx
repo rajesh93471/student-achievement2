@@ -5,6 +5,21 @@ import { useQuery } from "@tanstack/react-query";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { useAuth } from "@/components/layout/providers";
 import { api } from "@/lib/api";
+import { cn } from "@/lib/utils";
+import { 
+  Search, 
+  Filter, 
+  Download, 
+  FileText, 
+  FileSpreadsheet, 
+  ExternalLink,
+  ChevronRight,
+  GraduationCap,
+  Calendar,
+  Layers,
+  Award,
+  Loader2
+} from "lucide-react";
 
 const ACHIEVEMENT_GROUPS = {
   technical: [
@@ -16,19 +31,35 @@ const ACHIEVEMENT_GROUPS = {
     { value: "project", label: "Project" },
     { value: "research", label: "Research" },
     { value: "academic", label: "Academic" },
+    { value: "other-technical", label: "Other" },
   ],
   "non-technical": [
     { value: "sports", label: "Sports" },
     { value: "cultural", label: "Cultural" },
     { value: "club", label: "Club" },
+    { value: "leadership", label: "Leadership" },
+    { value: "volunteering", label: "Volunteering" },
+    { value: "social-service", label: "Social Service" },
+    { value: "nss", label: "NSS" },
+    { value: "ncc", label: "NCC" },
+    { value: "entrepreneurship", label: "Entrepreneurship" },
+    { value: "arts", label: "Arts" },
+    { value: "literary", label: "Literary" },
+    { value: "public-speaking", label: "Public Speaking" },
+    { value: "community", label: "Community Engagement" },
+    { value: "other-non-technical", label: "Other" },
   ],
 } as const;
 
 type AchievementGroup = keyof typeof ACHIEVEMENT_GROUPS;
 
+const selectClasses = "w-full bg-white border border-surface-300 rounded-xl px-4 py-2.5 text-ink font-sans text-sm outline-none transition-all focus:border-brand-500 focus:ring-4 focus:ring-brand-100 cursor-pointer shadow-sm appearance-none";
+const labelClasses = "block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2";
+
 export default function AdminStudentAchievementsPage() {
   const { token } = useAuth();
   const [selectedYear, setSelectedYear] = useState<string>("all");
+  const [selectedAchievementYear, setSelectedAchievementYear] = useState<string>("all");
   const [selectedGroup, setSelectedGroup] = useState<AchievementGroup>("technical");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [downloadState, setDownloadState] = useState<string>("");
@@ -39,464 +70,241 @@ export default function AdminStudentAchievementsPage() {
     enabled: !!token,
   });
 
-  const achievements = data?.achievements || [];
-  const yearOptions = useMemo(() => {
-    const years = achievements
-      .map((item) =>
-        item.student?.graduationYear != null && item.student?.graduationYear !== ""
-          ? String(item.student.graduationYear)
-          : null
-      )
-      .filter((year): year is string => Boolean(year));
+  const { data: metaData } = useQuery({
+    queryKey: ["admin-meta"],
+    queryFn: () => api<{ graduationYears: number[] }>("/admin/meta", { token }),
+    enabled: !!token,
+  });
 
+  const achievements = data?.achievements || [];
+  
+  const yearOptions = useMemo(() => {
+    if (metaData?.graduationYears) {
+      return metaData.graduationYears.map(String);
+    }
+    // Fallback to dynamic calculation if meta hasn't loaded
+    const years = achievements
+      .map((item) => item.student?.graduationYear != null ? String(item.student.graduationYear) : null)
+      .filter((year): year is string => Boolean(year));
+    return Array.from(new Set(years)).sort((left, right) => Number(right) - Number(left));
+  }, [achievements, metaData]);
+
+  const achievementYearOptions = useMemo(() => {
+    const years = achievements
+      .map((item) => item.date ? String(new Date(item.date).getFullYear()) : null)
+      .filter((year): year is string => Boolean(year));
     return Array.from(new Set(years)).sort((left, right) => Number(right) - Number(left));
   }, [achievements]);
 
-  const categoryOptions = ACHIEVEMENT_GROUPS[selectedGroup];
   const filteredAchievements = achievements.filter((item) => {
-    const graduationYear =
-      item.student?.graduationYear != null && item.student?.graduationYear !== ""
-        ? String(item.student.graduationYear)
-        : "";
-    const matchesYear = selectedYear === "all" || graduationYear === selectedYear;
-    const matchesGroup = ACHIEVEMENT_GROUPS[selectedGroup].some((option) => option.value === item.category);
-    const matchesCategory = selectedCategory === "all" || item.category === selectedCategory;
-    return matchesYear && matchesGroup && matchesCategory;
+    const graduationYear = item.student?.graduationYear != null ? String(item.student.graduationYear) : "";
+    const achievementYear = item.date ? String(new Date(item.date).getFullYear()) : "";
+    
+    return (
+      (selectedYear === "all" || graduationYear === selectedYear) &&
+      (selectedAchievementYear === "all" || achievementYear === selectedAchievementYear) &&
+      (ACHIEVEMENT_GROUPS[selectedGroup].some(o => o.value === item.category)) &&
+      (selectedCategory === "all" || item.category === selectedCategory)
+    );
   });
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+  const groupedAchievements = useMemo(() => {
+    const groups = new Map<string, any>();
+    filteredAchievements.forEach((item) => {
+      const key = item.student?._id || item.student?.studentId || item._id;
+      if (!groups.has(key)) {
+        groups.set(key, {
+          studentName: item.student?.fullName || "Student",
+          studentId: item.student?.studentId || "-",
+          department: item.student?.department || "Dept",
+          graduationYear: item.student?.graduationYear || "-",
+          items: [],
+        });
+      }
+      groups.get(key).items.push(item);
+    });
+    return Array.from(groups.values());
+  }, [filteredAchievements]);
 
-  const downloadPdf = async () => {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api";
+
+  const handleExport = async (format: "pdf" | "excel") => {
     if (!token) return;
-    setDownloadState("Preparing PDF download...");
-    const params = new URLSearchParams({
-      report: "student-achievements",
-      format: "pdf",
-      year: selectedYear,
-      group: selectedGroup,
-      category: selectedCategory,
-    });
-    const response = await fetch(`${apiUrl}/admin/reports/export?${params.toString()}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "student-achievements.pdf";
-    link.click();
-    window.URL.revokeObjectURL(url);
-    setDownloadState("Downloaded student achievements PDF.");
+    setDownloadState(`Preparing ${format.toUpperCase()}...`);
+    try {
+      const params = new URLSearchParams({
+        report: "student-achievements",
+        format,
+        year: selectedYear,
+        achievementYear: selectedAchievementYear,
+        group: selectedGroup,
+        category: selectedCategory,
+      });
+      const response = await fetch(`${apiUrl}/admin/reports/export?${params.toString()}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `achievements-report.${format === "pdf" ? "pdf" : "xlsx"}`;
+      link.click();
+      window.URL.revokeObjectURL(url);
+      setDownloadState("");
+    } catch (err) {
+      setDownloadState("Export failed.");
+    }
   };
 
   return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&display=swap');
-
-        .sa-wrap {
-          --ink: #0d1117;
-          --slate: #57606a;
-          --slate-light: #8b949e;
-          --brand: #1a56db;
-          --brand-light: #eef2ff;
-          --surface: #f6f8fa;
-          --white: #ffffff;
-          --border: #d0d7de;
-          --border-light: #eaeef2;
-          --green: #16a34a;
-          --green-light: #dcfce7;
-          --radius-lg: 18px;
-          --radius-xl: 24px;
-          --font-display: 'Instrument Serif', Georgia, serif;
-          --font-body: 'Geist', system-ui, sans-serif;
-          font-family: var(--font-body);
-          color: var(--ink);
-          -webkit-font-smoothing: antialiased;
-        }
-
-        .sa-page-header {
-          padding: 28px 0 24px;
-          border-bottom: 1px solid var(--border-light);
-          margin-bottom: 28px;
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-          gap: 16px;
-          flex-wrap: wrap;
-        }
-        .sa-breadcrumb {
-          font-size: 11px;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.08em;
-          color: var(--slate-light);
-          margin-bottom: 8px;
-          display: flex;
-          align-items: center;
-          gap: 5px;
-        }
-        .sa-page-title {
-          font-family: var(--font-display);
-          font-size: 30px;
-          font-weight: 400;
-          line-height: 1.1;
-        }
-        .sa-page-title em {
-          font-style: italic;
-          color: var(--brand);
-        }
-        .sa-page-sub {
-          font-size: 14px;
-          color: var(--slate);
-          margin-top: 5px;
-        }
-
-        .sa-card {
-          background: var(--white);
-          border: 1px solid var(--border);
-          border-radius: var(--radius-xl);
-          overflow: hidden;
-        }
-        .sa-card-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          padding: 18px 24px 14px;
-          border-bottom: 1px solid var(--border-light);
-          flex-wrap: wrap;
-        }
-        .sa-card-title {
-          font-size: 14px;
-          font-weight: 600;
-          color: var(--ink);
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-        .sa-card-title-dot {
-          width: 7px;
-          height: 7px;
-          border-radius: 50%;
-          background: var(--brand);
-        }
-        .sa-card-body {
-          padding: 20px 24px 24px;
-        }
-        .sa-filter-row {
-          display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 12px;
-          margin-bottom: 18px;
-        }
-        .sa-label {
-          font-size: 11px;
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 0.08em;
-          color: var(--slate-light);
-          margin-bottom: 6px;
-          display: block;
-        }
-        .sa-select {
-          width: 100%;
-          padding: 10px 12px;
-          border-radius: 10px;
-          border: 1px solid var(--border);
-          background: var(--surface);
-          color: var(--ink);
-          font-family: var(--font-body);
-          font-size: 13px;
-        }
-        .sa-toolbar {
-          display: flex;
-          justify-content: space-between;
-          gap: 12px;
-          align-items: center;
-          margin-bottom: 14px;
-          flex-wrap: wrap;
-        }
-        .sa-summary {
-          font-size: 13px;
-          color: var(--slate);
-        }
-        .sa-btn {
-          border: none;
-          border-radius: 10px;
-          padding: 10px 16px;
-          font-size: 13px;
-          font-weight: 600;
-          cursor: pointer;
-          font-family: var(--font-body);
-        }
-        .sa-btn-download {
-          background: var(--brand-light);
-          color: var(--brand);
-        }
-        .sa-download-state {
-          font-size: 12px;
-          color: var(--slate);
-        }
-        .sa-table-wrap {
-          overflow-x: auto;
-          border: 1px solid var(--border-light);
-          border-radius: 16px;
-        }
-        .sa-table {
-          width: 100%;
-          border-collapse: collapse;
-          font-size: 13px;
-        }
-        .sa-table thead th {
-          text-align: left;
-          font-size: 10px;
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 0.08em;
-          color: var(--slate-light);
-          padding: 14px 16px;
-          background: var(--surface);
-          border-bottom: 1px solid var(--border-light);
-          white-space: nowrap;
-        }
-        .sa-table tbody td {
-          padding: 14px 16px;
-          border-bottom: 1px solid var(--border-light);
-          vertical-align: top;
-        }
-        .sa-table tbody tr:last-child td {
-          border-bottom: none;
-        }
-        .sa-student-name {
-          font-weight: 600;
-          color: var(--ink);
-        }
-        .sa-student-sub {
-          margin-top: 3px;
-          font-size: 12px;
-          color: var(--slate);
-        }
-        .sa-pill {
-          display: inline-flex;
-          align-items: center;
-          border-radius: 999px;
-          padding: 4px 9px;
-          font-size: 10px;
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 0.06em;
-          color: var(--brand);
-          background: var(--brand-light);
-        }
-        .sa-actions {
-          display: flex;
-          justify-content: flex-end;
-        }
-        .sa-view-btn {
-          border: 1px solid var(--border-light);
-          border-radius: 999px;
-          padding: 7px 12px;
-          font-size: 12px;
-          font-weight: 600;
-          font-family: var(--font-body);
-          background: var(--brand-light);
-          color: var(--brand);
-          cursor: pointer;
-          transition: background 0.18s, border-color 0.18s;
-        }
-        .sa-view-btn:hover {
-          background: #dbeafe;
-          border-color: #bfdbfe;
-        }
-        .sa-view-btn:disabled {
-          cursor: not-allowed;
-          opacity: 0.45;
-          background: var(--surface);
-          color: var(--slate-light);
-        }
-        .sa-empty {
-          text-align: center;
-          padding: 52px 20px;
-          color: var(--slate);
-          font-size: 14px;
-          border: 1px dashed var(--border);
-          border-radius: 16px;
-          background: var(--surface);
-        }
-
-        @media (max-width: 900px) {
-          .sa-filter-row {
-            grid-template-columns: 1fr;
-          }
-        }
-      `}</style>
-
-      <div className="sa-wrap">
-        <DashboardShell
-          title="Admin dashboard"
-          subtitle="Browse and download student achievements by year and category."
-          nav={[
-            { label: "Overview", href: "/admin" },
-            { label: "Students", href: "/admin/students" },
-            { label: "Student achievements", href: "/admin/student-achievements" },
-            { label: "Approvals", href: "/admin/approvals" },
-            { label: "Analytics", href: "/admin/analytics" },
-            { label: "Reports", href: "/admin/reports" },
-          ]}
-        >
-          <div className="sa-page-header">
-            <div>
-              <div className="sa-breadcrumb">
-                <span>Admin</span>
-                <span>{">"}</span>
-                <span style={{ color: "var(--ink)" }}>Student achievements</span>
-              </div>
-              <h1 className="sa-page-title">
-                Student <em>achievements</em>
-              </h1>
-              <p className="sa-page-sub">
-                Filter achievement records by graduation year, stream, and category, then export the result.
-              </p>
-            </div>
+    <DashboardShell
+      title="Achievement Explorer"
+      subtitle="Advanced filtering and export tools for verified student accomplishments."
+      nav={[
+        { label: "Overview", href: "/admin" },
+        { label: "Students", href: "/admin/students" },
+        { label: "Student achievements", href: "/admin/student-achievements" },
+        { label: "Approvals", href: "/admin/approvals" },
+        { label: "Analytics", href: "/admin/analytics" },
+        { label: "Reports", href: "/admin/reports" },
+      ]}
+    >
+      {/* ── Filters Card ── */}
+      <div className="bg-white border border-surface-200 rounded-[32px] p-6 mb-6 shadow-panel animate-fade-up">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="relative group">
+            <label className={labelClasses}>
+              <GraduationCap size={14} className="inline mr-1" />
+              Graduation Year
+            </label>
+            <select className={selectClasses} value={selectedYear} onChange={e => setSelectedYear(e.target.value)}>
+              <option value="all">ALL YEARS</option>
+              {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
           </div>
-
-          <div className="sa-card">
-            <div className="sa-card-header">
-              <span className="sa-card-title">
-                <span className="sa-card-title-dot" />
-                Achievement explorer
-              </span>
-            </div>
-            <div className="sa-card-body">
-              <div className="sa-filter-row">
-                <div>
-                  <label className="sa-label">Graduation year</label>
-                  <select
-                    className="sa-select"
-                    value={selectedYear}
-                    onChange={(event) => setSelectedYear(event.target.value)}
-                  >
-                    <option value="all">All graduation years</option>
-                    {yearOptions.map((year) => (
-                      <option key={year} value={year}>{year}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="sa-label">Achievement stream</label>
-                  <select
-                    className="sa-select"
-                    value={selectedGroup}
-                    onChange={(event) => {
-                      const nextGroup = event.target.value as AchievementGroup;
-                      setSelectedGroup(nextGroup);
-                      setSelectedCategory("all");
-                    }}
-                  >
-                    <option value="technical">Technical</option>
-                    <option value="non-technical">Non-technical</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="sa-label">
-                    {selectedGroup === "technical" ? "Technical achievement" : "Non-technical achievement"}
-                  </label>
-                  <select
-                    className="sa-select"
-                    value={selectedCategory}
-                    onChange={(event) => setSelectedCategory(event.target.value)}
-                  >
-                    <option value="all">
-                      {selectedGroup === "technical" ? "All technical achievements" : "All non-technical achievements"}
-                    </option>
-                    {categoryOptions.map((option) => (
-                      <option key={option.value} value={option.value}>{option.label}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="sa-toolbar">
-                <div>
-                  <div className="sa-summary">
-                    {isLoading ? "Loading achievements..." : `Showing ${filteredAchievements.length} achievement records`}
-                  </div>
-                  {downloadState ? <div className="sa-download-state">{downloadState}</div> : null}
-                </div>
-                <button
-                  type="button"
-                  className="sa-btn sa-btn-download"
-                  onClick={downloadPdf}
-                  disabled={filteredAchievements.length === 0}
-                >
-                  Download PDF
-                </button>
-              </div>
-
-              {filteredAchievements.length === 0 ? (
-                <div className="sa-empty">
-                  No student achievements match the selected filters.
-                </div>
-              ) : (
-                <div className="sa-table-wrap">
-                  <table className="sa-table">
-                    <thead>
-                      <tr>
-                        <th>Student</th>
-                        <th>Registration Number</th>
-                        <th>Achievement</th>
-                        <th>Category</th>
-                        <th>Graduation Year</th>
-                        <th>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredAchievements.map((item) => {
-                        return (
-                          <tr key={item._id}>
-                            <td>
-                              <div className="sa-student-name">{item.student?.fullName || "Student"}</div>
-                              <div className="sa-student-sub">{item.student?.department || "Department"}</div>
-                            </td>
-                            <td>{item.student?.studentId || "-"}</td>
-                            <td>
-                              <div className="sa-student-name">{item.title || "-"}</div>
-                              <div className="sa-student-sub">{item.description || "-"}</div>
-                            </td>
-                            <td>
-                              <span className="sa-pill">{item.category || "-"}</span>
-                            </td>
-                            <td>{item.student?.graduationYear ?? "-"}</td>
-                            <td>
-                              <div className="sa-actions">
-                                <button
-                                  type="button"
-                                  className="sa-view-btn"
-                                  disabled={!item.certificateUrl}
-                                  onClick={() => {
-                                    if (item.certificateUrl) {
-                                      window.open(item.certificateUrl, "_blank", "noopener,noreferrer");
-                                    }
-                                  }}
-                                >
-                                  View
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
+          <div className="relative group">
+            <label className={labelClasses}>
+              <Calendar size={14} className="inline mr-1" />
+              Award Year
+            </label>
+            <select className={selectClasses} value={selectedAchievementYear} onChange={e => setSelectedAchievementYear(e.target.value)}>
+              <option value="all">ALL YEARS</option>
+              {achievementYearOptions.map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
           </div>
-        </DashboardShell>
+          <div className="relative group">
+            <label className={labelClasses}>
+              <Layers size={14} className="inline mr-1" />
+              Stream
+            </label>
+            <select 
+              className={selectClasses} 
+              value={selectedGroup} 
+              onChange={e => { setSelectedGroup(e.target.value as AchievementGroup); setSelectedCategory("all"); }}
+            >
+              <option value="technical">TECHNICAL</option>
+              <option value="non-technical">NON-TECHNICAL</option>
+            </select>
+          </div>
+          <div className="relative group">
+            <label className={labelClasses}>
+              <Award size={14} className="inline mr-1" />
+              Category
+            </label>
+            <select className={selectClasses} value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)}>
+              <option value="all">ALL CATEGORIES</option>
+              {ACHIEVEMENT_GROUPS[selectedGroup].map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          </div>
+        </div>
+
+        <div className="mt-6 pt-5 border-t border-surface-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+           <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
+             {isLoading ? <Loader2 size={14} className="animate-spin" /> : <Layers size={14} />}
+             Found: {groupedAchievements.length} Students &bull; {filteredAchievements.length} Achievements
+             {downloadState && <span className="ml-2 text-brand-600 animate-pulse">{downloadState}</span>}
+           </div>
+           
+           <div className="flex items-center gap-2">
+              <button 
+                className="flex items-center gap-2 px-4 py-2 bg-brand-50 text-brand-700 border border-brand-100 rounded-xl text-[10px] font-bold hover:bg-brand-600 hover:text-white transition-all shadow-sm"
+                onClick={() => handleExport("pdf")}
+              >
+                <FileText size={14} />
+                PDF
+              </button>
+              <button 
+                className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-xl text-[10px] font-bold hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
+                onClick={() => handleExport("excel")}
+              >
+                <FileSpreadsheet size={14} />
+                EXCEL
+              </button>
+           </div>
+        </div>
       </div>
-    </>
+
+      {/* ── Results Table ── */}
+      <div className="bg-white border border-surface-200 rounded-3xl overflow-hidden shadow-panel animate-fade-up" style={{ animationDelay: "100ms" }}>
+        {groupedAchievements.length === 0 ? (
+          <div className="text-center py-24">
+             <Search size={64} className="mx-auto mb-4 text-slate-200" />
+             <h3 className="font-display font-semibold text-2xl text-ink">No results found</h3>
+             <p className="text-sm text-slate-500">Try adjusting your filters to find matching records.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-surface-50/50">
+                  <th className="px-6 py-4 font-sans text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-surface-100">Identity</th>
+                  <th className="px-6 py-4 font-sans text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-surface-100">Details</th>
+                  <th className="px-6 py-4 font-sans text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-surface-100 italic">Scope</th>
+                  <th className="px-6 py-4 font-sans text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-surface-100 text-right">Verification</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-surface-100">
+                {groupedAchievements.map((group, gIdx) => (
+                  group.items.map((item: any, iIdx: number) => (
+                    <tr key={`${group.studentId}-${iIdx}`} className="group hover:bg-brand-50/10 transition-colors">
+                      {iIdx === 0 && (
+                        <td className="px-6 py-4 align-top" rowSpan={group.items.length}>
+                           <div className="font-display font-semibold text-ink leading-tight text-sm tracking-tight">{group.studentName}</div>
+                           <div className="text-[10px] font-semibold text-brand-600 uppercase tracking-widest mt-0.5">{group.studentId}</div>
+                           <div className="text-[9px] font-semibold text-slate-400 uppercase tracking-tight mt-1">{group.department} &bull; {group.graduationYear}</div>
+                        </td>
+                      )}
+                      <td className="px-6 py-4">
+                        <div className="font-sans font-semibold text-ink text-sm mb-0.5 tracking-tight">{item.title}</div>
+                        <p className="text-[11px] text-slate-400 leading-snug line-clamp-2">{item.description || "Verified achievement."}</p>
+                      </td>
+                      <td className="px-6 py-4">
+                         <span className="inline-block px-1.5 py-0.5 bg-white border border-surface-100 rounded text-[9px] font-bold text-slate-400 uppercase tracking-widest group-hover:border-brand-200 group-hover:text-brand-600 transition-colors">
+                           {item.category?.slice(0, 10)}
+                         </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                         <button
+                           disabled={!item.certificateUrl}
+                           className={cn(
+                             "p-2 rounded-xl transition-all shadow-sm",
+                             item.certificateUrl 
+                               ? "bg-brand-50 text-brand-600 hover:bg-brand-600 hover:text-white border border-brand-100" 
+                               : "bg-surface-50 text-slate-300 border border-surface-50 cursor-not-allowed"
+                           )}
+                           onClick={() => item.certificateUrl && window.open(item.certificateUrl, "_blank")}
+                         >
+                           <ExternalLink size={16} />
+                         </button>
+                      </td>
+                    </tr>
+                  ))
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </DashboardShell>
   );
 }

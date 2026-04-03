@@ -2,6 +2,7 @@
 
 import { X } from "lucide-react";
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 
 export function Modal({
   open,
@@ -34,7 +35,7 @@ export function Modal({
 
   if (!open) return null;
 
-  return (
+  const modalMarkup = (
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap');
@@ -62,6 +63,64 @@ export function Modal({
           color: #0f172a;
           background: rgba(37,99,235,0.06);
         }
+        .modal-viewport {
+          position: fixed;
+          inset: 0;
+          z-index: 51;
+          display: flex;
+          align-items: flex-start;
+          justify-content: center;
+          padding: 20px 16px;
+          overflow-y: auto;
+          pointer-events: none;
+        }
+        .modal-panel {
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 18px;
+          display: flex;
+          flex-direction: column;
+          width: min(100%, 640px);
+          height: fit-content;
+          max-height: calc(100dvh - 40px);
+          overflow: hidden;
+          padding: 28px;
+          box-shadow: 0 40px 100px rgba(15,23,42,0.2);
+          animation: modalSlideUp 0.28s cubic-bezier(0.22,1,0.36,1) both;
+          pointer-events: all;
+          position: relative;
+          margin: 0 auto;
+        }
+        .modal-body {
+          flex: 1;
+          min-height: 0;
+          overflow-y: auto;
+          padding-right: 4px;
+          overscroll-behavior: contain;
+          -webkit-overflow-scrolling: touch;
+        }
+        @supports not (height: 100dvh) {
+          .modal-panel {
+            max-height: calc(100vh - 40px);
+          }
+        }
+        @media (max-width: 640px) {
+          .modal-viewport {
+            padding: 12px;
+          }
+          .modal-panel {
+            border-radius: 16px;
+            padding: 20px;
+            max-height: calc(100dvh - 24px);
+          }
+        }
+        @supports not (height: 100dvh) {
+          @media (max-width: 640px) {
+            .modal-panel {
+              max-height: calc(100vh - 24px);
+            }
+          }
+        }
       `}</style>
 
       {/* Backdrop */}
@@ -77,30 +136,8 @@ export function Modal({
       />
 
       {/* Panel */}
-      <div style={{
-        position: "fixed", inset: 0, zIndex: 51,
-        display: "flex", alignItems: "flex-start", justifyContent: "center",
-        overflowY: "auto",
-        padding: "24px 16px",
-        pointerEvents: "none",
-      }}>
-        <div style={{
-          background: "#ffffff",
-          border: "1px solid #e2e8f0",
-          borderRadius: 18,
-          display: "flex",
-          flexDirection: "column",
-          width: "100%",
-          maxWidth: 640,
-          maxHeight: "90vh",
-          overflow: "hidden",
-          padding: "28px",
-          boxShadow: "0 40px 100px rgba(15,23,42,0.2)",
-          animation: "modalSlideUp 0.28s cubic-bezier(0.22,1,0.36,1) both",
-          pointerEvents: "all",
-          position: "relative",
-          margin: "auto 0",
-        }}>
+      <div className="modal-viewport">
+        <div className="modal-panel">
 
           {/* Ambient glow */}
           <div style={{
@@ -139,11 +176,13 @@ export function Modal({
           <div style={{ borderTop: "1px solid #e2e8f0", marginBottom: 24 }} />
 
           {/* Content */}
-          <div style={{ flex: 1, minHeight: 0, overflowY: "auto", paddingRight: 4 }}>
+          <div className="modal-body">
             {children}
           </div>
         </div>
       </div>
     </>
   );
+
+  return createPortal(modalMarkup, document.body);
 }

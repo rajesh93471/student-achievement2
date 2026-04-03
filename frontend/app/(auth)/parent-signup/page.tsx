@@ -4,8 +4,10 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
+import { Eye, EyeOff } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/components/layout/providers";
+import { UniversityWordmark } from "@/components/layout/university-wordmark";
 import { AuthUser } from "@/lib/types";
 
 type ParentSignUpValues = {
@@ -21,6 +23,7 @@ export default function ParentSignUpPage() {
   const router = useRouter();
   const { setSession } = useAuth();
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const { register, handleSubmit } = useForm<ParentSignUpValues>({
     defaultValues: {
       relation: "Parent",
@@ -109,6 +112,20 @@ export default function ParentSignUpPage() {
           transition: opacity 0.15s;
         }
         .psu-back:hover { opacity: 0.7; }
+        .psu-logo-panel {
+          width: min(100%, 380px);
+          height: 100px;
+          background: #ffffff;
+          border: 1px solid #d0d7de;
+          border-radius: 18px;
+          box-shadow: 0 12px 28px rgba(31,35,40,0.1);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 12px 18px;
+          margin-bottom: 18px;
+        }
+        .psu-logo-panel img { width: 100%; height: 100%; object-fit: contain; }
 
         .psu-eyebrow {
           display: inline-flex;
@@ -190,6 +207,31 @@ export default function ParentSignUpPage() {
           background: #ffffff;
           box-shadow: 0 0 0 3px rgba(26,86,219,0.10);
         }
+        .psu-password-wrap {
+          position: relative;
+        }
+        .psu-password-toggle {
+          position: absolute;
+          top: 50%;
+          right: 10px;
+          transform: translateY(-50%);
+          width: 28px;
+          height: 28px;
+          border: none;
+          border-radius: 999px;
+          background: rgba(148, 163, 184, 0.12);
+          color: #57606a;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          padding: 0;
+          transition: background 0.18s, color 0.18s;
+        }
+        .psu-password-toggle:hover {
+          background: rgba(26, 86, 219, 0.12);
+          color: #1a56db;
+        }
 
         .psu-error {
           font-size: 13px;
@@ -250,6 +292,9 @@ export default function ParentSignUpPage() {
 
           <div className="psu-card-header">
             <Link href="/" className="psu-back">← Back to home</Link>
+            <div className="psu-logo-panel">
+              <UniversityWordmark />
+            </div>
             <div className="psu-eyebrow">
               <span className="psu-eyebrow-dot" />
               Parent onboarding
@@ -275,7 +320,24 @@ export default function ParentSignUpPage() {
                 </div>
                 <div className="psu-field">
                   <label className="psu-label">Password</label>
-                  <input className="psu-input" type="password" placeholder="Create a strong password" {...register("password", { required: true })} />
+                  <div className="psu-password-wrap">
+                    <input
+                      className="psu-input"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Create a strong password"
+                      style={{ paddingRight: 50 }}
+                      {...register("password", { required: true })}
+                    />
+                    <button
+                      type="button"
+                      className="psu-password-toggle"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      aria-pressed={showPassword}
+                      onClick={() => setShowPassword((current) => !current)}
+                    >
+                      {showPassword ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />}
+                    </button>
+                  </div>
                 </div>
                 <div className="psu-field">
                   <label className="psu-label">Child registration number</label>
