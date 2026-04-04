@@ -20,7 +20,7 @@ import { join } from 'path';
     ConfigModule.forRoot({ isGlobal: true }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),
-      serveRoot: '/achieve/uploads',
+      serveRoot: '/achieve/api/uploads',
     }),
     PrismaModule,
     AuthModule,

@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/achieve";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://160.187.169.41/achieve/api";
 
 type RequestOptions = RequestInit & {
   token?: string | null;
